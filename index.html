@@ -4,91 +4,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My First Service</title>
+    <title>My Life Log</title>
     <style>
-        /* ここから下がCSS（デザインの設定）です */
         body {
-            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif;
-            background-color: pink;
-            /* 背景色：薄いグレー */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            /* 画面の高さいっぱいに広げる */
+            font-family: sans-serif;
+            background-color: #f4f4f9;
             margin: 0;
+            padding: 20px;
         }
 
-        /* 画像のデザイン */
-        img {
-            max-width: 100%;
-            /* 横幅はカードからはみ出さない */
-            height: auto;
-            /* 高さは自動調整 */
-            border-radius: 10px;
-            /* 角を少し丸くする */
-            margin-top: 20px;
-            /* 上に少し隙間を空ける */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            /* 影をつけて浮き上がらせる */
-        }
-
-        .card {
-            background-color: white;
-            /* カードの色 */
-            padding: 40px;
-            border-radius: 15px;
-            /* 角を丸くする */
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            /* 影をつける */
+        header {
             text-align: center;
-            max-width: 400px;
-            width: 90%;
+            margin-bottom: 30px;
         }
 
         h1 {
             color: #333;
-            font-size: 24px;
+        }
+
+        /* グリッドレイアウト：カードを綺麗に並べる */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            /* マウスを乗せると浮く */
+        }
+
+        .card-image {
+            height: 180px;
+            background-color: #ddd;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
             margin-bottom: 10px;
         }
 
-        p {
-            color: #666;
-            line-height: 1.6;
+        .tag-movie {
+            background-color: #e50914;
         }
 
-        .button {
-            display: inline-block;
+        /* 映画は赤 */
+        .tag-book {
+            background-color: #2e8b57;
+        }
+
+        /* 本は緑 */
+        .tag-travel {
             background-color: #007bff;
-            /* ボタンの青色 */
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 30px;
-            /* ボタンを丸く */
-            margin-top: 20px;
-            font-weight: bold;
-            transition: 0.3s;
-            /* アニメーション速度 */
         }
 
-        .button:hover {
-            background-color: #0056b3;
-            /* マウスを乗せた時の色 */
-            transform: translateY(-2px);
-            /* 少し浮き上がる */
+        /* 旅行は青 */
+
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .status {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .comment {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="card">
-        <h1>Welcome to My Service!</h1>
-        <img src="Inotino-shaso-kara.png" width="300">
-        <p>CSSを使うと、こんな風にデザインを変えることができます。</p>
-        <p>一気に「Webアプリ」っぽくなりましたね！</p>
-        <a href="https://www.google.com" class="button">スタートする</a>
+    <header>
+        <h1>My Life Log</h1>
+        <p>見たもの、行った場所、これからの計画。</p>
+    </header>
+
+    <div class="grid-container">
+
+        <div class="card">
+            <div class="card-image"
+                style="background-image: url('https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?auto=format&fit=crop&w=500&q=60');">
+            </div>
+            <div class="card-content">
+                <span class="tag tag-movie">Movie</span>
+                <div class="title">アイアンマン</div>
+                <div class="status">★ 5.0 | 視聴済み</div>
+                <p class="comment">やっぱりトニー・スタークは永遠のヒーロー。スーツ装着シーンのギミックが最高。</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-image"
+                style="background-image: url('https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=500&q=60');">
+            </div>
+            <div class="card-content">
+                <span class="tag tag-travel">Travel</span>
+                <div class="title">沖縄旅行計画</div>
+                <div class="status">予定 | 2026年1月</div>
+                <p class="comment">成人式の後に友人と。美ら海水族館と国際通りは絶対に行きたい！</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-image"
+                style="background-image: url('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=500&q=60');">
+            </div>
+            <div class="card-content">
+                <span class="tag tag-book">Book</span>
+                <div class="title">いのちの車窓から</div>
+                <div class="status">★ 4.8 | 読了</div>
+                <p class="comment">日常のふとした瞬間の切り取り方が素敵。心が落ち着く一冊。</p>
+            </div>
+        </div>
+
     </div>
 
 </body>
