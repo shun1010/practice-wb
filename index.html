@@ -4,29 +4,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Life Log</title>
+    <title>My Life Log - Bookshelf</title>
     <style>
+        /* --- 基本設定（壁紙など） --- */
         body {
             font-family: "Helvetica Neue", Arial, sans-serif;
-            background-color: #f4f4f9;
+            background-color: #f0e6d2;
             margin: 0;
             padding: 20px;
-            color: #333;
+            color: #4a3b32;
         }
 
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
-        /* --- 入力フォームのデザイン --- */
+        h1 {
+            font-family: 'Georgia', serif;
+            color: #3e2e25;
+        }
+
+        /* --- 入力フォーム --- */
         .input-area {
-            background: white;
+            background: #fffcf5;
             max-width: 600px;
-            margin: 0 auto 40px auto;
+            margin: 0 auto 50px auto;
             padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            border: 1px solid #dcd0c0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
         .input-group {
@@ -45,10 +52,11 @@
         textarea {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             box-sizing: border-box;
             font-size: 16px;
+            background: #fff;
         }
 
         textarea {
@@ -57,12 +65,12 @@
         }
 
         button.save-btn {
-            background-color: #333;
-            color: white;
+            background-color: #5d4e43;
+            color: #fffcf5;
             border: none;
             width: 100%;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 4px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
@@ -70,113 +78,89 @@
         }
 
         button.save-btn:hover {
-            background-color: #555;
-            transform: translateY(-2px);
+            background-color: #7a685a;
         }
 
-        /* --- グリッドレイアウト --- */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        /* --- ★ここからが本棚の魔法です★ --- */
-
-        /* 本棚のエリア全体 */
+        /* --- 本棚エリア --- */
         .grid-container {
             display: flex;
-            /* グリッドではなくフレックスボックスで横並び */
             flex-wrap: wrap;
-            /* 折り返しOK */
             align-items: flex-end;
-            /* アイテムを底辺（棚板）に揃える */
             gap: 5px;
-            /* 本と本の間隔は狭く */
+            /* 本の間隔 */
             max-width: 900px;
             margin: 0 auto;
             padding: 20px 20px 15px 20px;
-            /* 下のpaddingを棚板の厚みにする */
             background-color: #d9c6a3;
-            /* 棚の内側の影色 */
             border-bottom: 15px solid #8c7b65;
-            /* これが「棚板」に見える！ */
             box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.1);
-            /* 内側に影をつけて奥行きを出す */
             border-radius: 4px;
+            min-height: 180px;
+            /* 棚の高さを確保 */
         }
 
-        /* 本（カード）のデザイン変更 */
+        /* --- 本（カード）のデザイン：閉じた状態（背表紙） --- */
         .card {
             width: 45px;
-            /* ★背表紙なので幅を狭く！ */
             height: 160px;
-            /* ★高さは固定 */
+            /* 背表紙サイズ */
             background: #fff;
-            /* デフォルトは白 */
             border-radius: 3px 5px 5px 3px;
-            /* 本っぽく左側を少し丸く */
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-            /* 立体的な影 */
-            transition: transform 0.2s;
-            animation: fadeIn 0.5s ease;
+            transition: all 0.4s ease-in-out;
+            /* アニメーションの時間と動き */
             position: relative;
             overflow: hidden;
-            /* はみ出た内容は隠す */
             cursor: pointer;
-            /* クリックできそうなマウスカーソルに */
-            /* 背表紙の装飾線 */
             background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 5%, transparent 5%, transparent 95%, rgba(0, 0, 0, 0.05) 95%);
+            transform-origin: left center;
+            /* 左端を中心に開く */
         }
 
         .card:hover {
-            transform: translateY(-5px) scale(1.02);
-            /* ホバー時に少し浮き出して大きくなる */
-            z-index: 1;
-            /* 他の本より手前に表示 */
+            transform: translateY(-5px);
+            z-index: 2;
         }
 
-        /* ジャンルごとに背表紙の色を変える */
-        /* ここで .tag-movie などのクラスを利用して親の .card の色を変えるテクニック */
-        .card:has(.tag-movie) {
+        /* ホバー時は少し浮くだけ */
+
+        /* 背表紙の色分け */
+        .card[data-genre="movie"] {
             background-color: #d32f2f;
             color: white;
         }
 
-        /* 映画は赤本 */
-        .card:has(.tag-book) {
+        .card[data-genre="book"] {
             background-color: #388e3c;
             color: white;
         }
 
-        /* 本は緑本 */
-        .card:has(.tag-travel) {
+        .card[data-genre="travel"] {
             background-color: #1976d2;
             color: white;
         }
 
-        /* 旅行は青本 */
-
+        /* --- 本の中身（共通） --- */
         .card-content {
             padding: 15px 5px;
             height: 100%;
             box-sizing: border-box;
-            /* 縦書きにする魔法！ */
+            transition: all 0.4s ease-in-out;
+        }
+
+        /* 閉じた状態の中身（縦書き） */
+        .card:not(.open) .card-content {
             writing-mode: vertical-rl;
             text-orientation: mixed;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            /* 上（縦書きなので右）寄せ */
             align-items: center;
         }
 
-        /* 背表紙モードなので、詳細情報は非表示にする */
-        .tag,
-        .comment,
-        .delete-btn {
+        /* 閉じた状態では詳細を隠す */
+        .card:not(.open) .tag,
+        .card:not(.open) .comment,
+        .card:not(.open) .delete-btn-wrap {
             display: none;
         }
 
@@ -185,13 +169,104 @@
             font-weight: bold;
             margin: 0;
             line-height: 1.2;
-            /* 長すぎるタイトルは「…」で省略 */
             max-height: 120px;
             overflow: hidden;
+            transition: all 0.4s;
         }
 
-        /* 削除ボタン（ホバー時だけ表示させたいが、今回は複雑になるので一旦非表示） */
-        /* .card:hover .delete-btn { display: block; color: white; } */
+        /* --- ★本が開いた状態のデザイン★ --- */
+        .card.open {
+            width: 300px;
+            /* 幅を広げる */
+            height: auto;
+            /* 高さは自動 */
+            min-height: 250px;
+            background-color: #fffcf5 !important;
+            /* 背景を紙の色に（importantで背表紙色を上書き） */
+            color: #4a3b32 !important;
+            /* 文字色を戻す */
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            /* 最前面に */
+            border-radius: 5px;
+            overflow: visible;
+            /* 削除ボタンなどを表示可能に */
+            transform: scale(1.05) !important;
+            /* 少し大きく表示 */
+            background-image: none;
+            /* 背表紙の線を消す */
+            cursor: default;
+        }
+
+        /* 開いた状態の中身（横書きに戻す） */
+        .card.open .card-content {
+            writing-mode: horizontal-tb;
+            /* 横書き */
+            display: block;
+            padding: 25px;
+        }
+
+        .card.open .title {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #333;
+            max-height: none;
+            /* タイトル全文表示 */
+        }
+
+        /* 開いた状態のタグ */
+        .card.open .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .tag-movie {
+            background-color: #e50914;
+        }
+
+        .tag-book {
+            background-color: #2e8b57;
+        }
+
+        .tag-travel {
+            background-color: #007bff;
+        }
+
+        /* 開いた状態の感想 */
+        .card.open .comment {
+            display: block;
+            font-size: 15px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* 開いた状態の削除ボタンエリア */
+        .delete-btn-wrap {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .delete-btn {
+            background: #eee;
+            border: none;
+            color: #999;
+            font-size: 16px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background: #ffcccc;
+            color: red;
+        }
     </style>
 </head>
 
@@ -199,113 +274,86 @@
 
     <header>
         <h1>My Life Log</h1>
-        <p>ブラウザに保存されるバージョン</p>
+        <p>本棚の記録をクリックして開いてみよう</p>
     </header>
 
     <div class="input-area">
-        <div class="input-group">
-            <label>タイトル</label>
-            <input type="text" id="inputTitle" placeholder="例：アベンジャーズ">
-        </div>
-        <div class="input-group">
-            <label>ジャンル</label>
-            <select id="inputGenre">
+        <div class="input-group"><label>タイトル</label><input type="text" id="inputTitle" placeholder="例：アベンジャーズ"></div>
+        <div class="input-group"><label>ジャンル</label><select id="inputGenre">
                 <option value="movie">Movie (映画)</option>
                 <option value="book">Book (本)</option>
                 <option value="travel">Travel (旅行)</option>
-            </select>
+            </select></div>
+        <div class="input-group"><label>感想・メモ</label><textarea id="inputComment" placeholder="感想を入力..."></textarea>
         </div>
-        <div class="input-group">
-            <label>感想・メモ</label>
-            <textarea id="inputComment" placeholder="感想を入力..."></textarea>
-        </div>
-        <button class="save-btn" onclick="addCard()">保存する</button>
+        <button class="save-btn" onclick="addCard()">棚に入れる</button>
     </div>
 
     <div class="grid-container" id="cardContainer">
     </div>
 
     <script>
-        // データを保存する場所の名前（キー）
         const STORAGE_KEY = 'my_life_log_data';
+        document.addEventListener('DOMContentLoaded', () => { loadData(); });
 
-        // ページが読み込まれた時に実行する
-        document.addEventListener('DOMContentLoaded', () => {
-            loadData(); // 保存されたデータを表示
-        });
-
-        // カードを追加して保存する関数
+        // カードを追加して保存
         function addCard() {
             const title = document.getElementById('inputTitle').value;
             const genre = document.getElementById('inputGenre').value;
             const comment = document.getElementById('inputComment').value;
 
-            if (title === "") {
-                alert("タイトルを入力してください！");
-                return;
-            }
+            if (title === "") { alert("タイトルを入力してください！"); return; }
 
-            // 1. 今のデータを全部読み込む（無ければ空っぽのリスト）
             const currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-            // 2. 新しいデータをリストに追加する
-            const newData = {
-                id: Date.now(), // 削除用にIDをつけておく
-                title: title,
-                genre: genre,
-                comment: comment
-            };
-            currentData.unshift(newData); // リストの先頭に追加
-
-            // 3. ブラウザに保存する（Local Storage）
+            const newData = { id: Date.now(), title: title, genre: genre, comment: comment };
+            currentData.unshift(newData); // 新しい本を左端に追加
             localStorage.setItem(STORAGE_KEY, JSON.stringify(currentData));
-
-            // 4. 画面を再描画する
             renderCards(currentData);
 
-            // フォームをクリア
             document.getElementById('inputTitle').value = "";
             document.getElementById('inputComment').value = "";
         }
 
-        // データを削除する関数
-        function deleteCard(id) {
+        // データを削除
+        function deleteCard(event, id) {
+            event.stopPropagation(); // ★重要：親のカードをクリックしたことにならないようにする（開閉を止める）
             if (!confirm("本当に削除しますか？")) return;
 
-            // 保存されているデータを取得
             let currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-            // 指定されたID以外のデータだけを残す（＝指定IDを削除）
             currentData = currentData.filter(item => item.id !== id);
-
-            // 保存し直す
             localStorage.setItem(STORAGE_KEY, JSON.stringify(currentData));
-
-            // 画面を再描画
             renderCards(currentData);
         }
 
-        // データを読み込んで画面に表示する関数
+        // ★新機能：カードの開閉を切り替える関数
+        function toggleCard(id) {
+            const cardElement = document.getElementById('card-' + id);
+            // 'open' クラスが付いていれば外す、付いていなければ付ける
+            cardElement.classList.toggle('open');
+        }
+
         function loadData() {
             const currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
             renderCards(currentData);
         }
 
-        // 画面を作る関数（表示担当）
+        // 画面描画
         function renderCards(dataList) {
             const container = document.getElementById('cardContainer');
-            container.innerHTML = ""; // 一旦全部消して書き直す
+            container.innerHTML = "";
 
             dataList.forEach(data => {
-                let tagClass = "";
-                let tagName = "";
+                let tagClass = ""; let tagName = "";
                 if (data.genre === "movie") { tagClass = "tag-movie"; tagName = "Movie"; }
                 else if (data.genre === "book") { tagClass = "tag-book"; tagName = "Book"; }
                 else { tagClass = "tag-travel"; tagName = "Travel"; }
 
+                // HTML組み立て（クリックイベントとIDを追加）
                 const cardHTML = `
-                    <div class="card">
-                        <button class="delete-btn" onclick="deleteCard(${data.id})">×</button>
+                    <div class="card" id="card-${data.id}" data-genre="${data.genre}" onclick="toggleCard(${data.id})">
+                        <div class="delete-btn-wrap">
+                            <button class="delete-btn" onclick="deleteCard(event, ${data.id})">×</button>
+                        </div>
                         <div class="card-content">
                             <span class="tag ${tagClass}">${tagName}</span>
                             <div class="title">${data.title}</div>
