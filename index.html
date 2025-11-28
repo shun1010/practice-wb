@@ -24,7 +24,6 @@
             background: white;
             max-width: 600px;
             margin: 0 auto 40px auto;
-            /* 上横下の余白。下を広めに */
             padding: 25px;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -49,7 +48,6 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             box-sizing: border-box;
-            /* 枠線を含めた幅計算 */
             font-size: 16px;
         }
 
@@ -76,7 +74,7 @@
             transform: translateY(-2px);
         }
 
-        /* --- グリッドレイアウト（カード表示エリア） --- */
+        /* --- グリッドレイアウト --- */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -92,7 +90,8 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s;
             animation: fadeIn 0.5s ease;
-            /* 追加時のアニメーション */
+            position: relative;
+            /* 削除ボタンの配置用 */
         }
 
         @keyframes fadeIn {
@@ -143,6 +142,24 @@
             font-size: 14px;
             color: #555;
             line-height: 1.5;
+            white-space: pre-wrap;
+            /* 改行をそのまま表示する */
+        }
+
+        /* 削除ボタン */
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            color: red;
         }
     </style>
 </head>
@@ -151,7 +168,7 @@
 
     <header>
         <h1>My Life Log</h1>
-        <p>見たもの、行った場所、これからの計画。</p>
+        <p>ブラウザに保存されるバージョン</p>
     </header>
 
     <div class="input-area">
@@ -175,57 +192,98 @@
     </div>
 
     <div class="grid-container" id="cardContainer">
-        <div class="card">
-            <div class="card-content">
-                <span class="tag tag-movie">Movie</span>
-                <div class="title">アイアンマン</div>
-                <p class="comment">やっぱりトニー・スタークは永遠のヒーロー。スーツ装着シーンのギミックが最高。</p>
-            </div>
-        </div>
     </div>
 
     <script>
-        // --- ここからJavaScript（動きのプログラム） ---
+        // データを保存する場所の名前（キー）
+        const STORAGE_KEY = 'my_life_log_data';
 
+        // ページが読み込まれた時に実行する
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData(); // 保存されたデータを表示
+        });
+
+        // カードを追加して保存する関数
         function addCard() {
-            // 1. 入力されたデータを取得する
             const title = document.getElementById('inputTitle').value;
             const genre = document.getElementById('inputGenre').value;
             const comment = document.getElementById('inputComment').value;
 
-            // もしタイトルが空っぽなら、「入力して！」と言って終わる
             if (title === "") {
                 alert("タイトルを入力してください！");
                 return;
             }
 
-            // 2. 新しいカードのHTMLを作る
-            // ジャンルによってタグの色を変えるためのクラス名を決める
-            let tagClass = "";
-            let tagName = "";
-            if (genre === "movie") { tagClass = "tag-movie"; tagName = "Movie"; }
-            else if (genre === "book") { tagClass = "tag-book"; tagName = "Book"; }
-            else { tagClass = "tag-travel"; tagName = "Travel"; }
+            // 1. 今のデータを全部読み込む（無ければ空っぽのリスト）
+            const currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-            // カードのHTML組み立て
-            const newCardHTML = `
-                <div class="card">
-                    <div class="card-content">
-                        <span class="tag ${tagClass}">${tagName}</span>
-                        <div class="title">${title}</div>
-                        <p class="comment">${comment}</p>
-                    </div>
-                </div>
-            `;
+            // 2. 新しいデータをリストに追加する
+            const newData = {
+                id: Date.now(), // 削除用にIDをつけておく
+                title: title,
+                genre: genre,
+                comment: comment
+            };
+            currentData.unshift(newData); // リストの先頭に追加
 
-            // 3. 画面に追加する
-            const container = document.getElementById('cardContainer');
-            // 今あるカードの手前に追加したい場合は afterbegin、後ろなら beforeend
-            container.insertAdjacentHTML('afterbegin', newCardHTML);
+            // 3. ブラウザに保存する（Local Storage）
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(currentData));
 
-            // 4. 入力欄を空っぽに戻す
+            // 4. 画面を再描画する
+            renderCards(currentData);
+
+            // フォームをクリア
             document.getElementById('inputTitle').value = "";
             document.getElementById('inputComment').value = "";
+        }
+
+        // データを削除する関数
+        function deleteCard(id) {
+            if (!confirm("本当に削除しますか？")) return;
+
+            // 保存されているデータを取得
+            let currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+            // 指定されたID以外のデータだけを残す（＝指定IDを削除）
+            currentData = currentData.filter(item => item.id !== id);
+
+            // 保存し直す
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(currentData));
+
+            // 画面を再描画
+            renderCards(currentData);
+        }
+
+        // データを読み込んで画面に表示する関数
+        function loadData() {
+            const currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            renderCards(currentData);
+        }
+
+        // 画面を作る関数（表示担当）
+        function renderCards(dataList) {
+            const container = document.getElementById('cardContainer');
+            container.innerHTML = ""; // 一旦全部消して書き直す
+
+            dataList.forEach(data => {
+                let tagClass = "";
+                let tagName = "";
+                if (data.genre === "movie") { tagClass = "tag-movie"; tagName = "Movie"; }
+                else if (data.genre === "book") { tagClass = "tag-book"; tagName = "Book"; }
+                else { tagClass = "tag-travel"; tagName = "Travel"; }
+
+                const cardHTML = `
+                    <div class="card">
+                        <button class="delete-btn" onclick="deleteCard(${data.id})">×</button>
+                        <div class="card-content">
+                            <span class="tag ${tagClass}">${tagName}</span>
+                            <div class="title">${data.title}</div>
+                            <p class="comment">${data.comment}</p>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHTML);
+            });
         }
     </script>
 
