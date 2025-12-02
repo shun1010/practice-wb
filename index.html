@@ -4,15 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Life Log - Real Bookshelf</title>
+    <title>My Life Log - 3D Antique Bookshelf</title>
     <style>
-        /* --- 基本設定（少し暗めの落ち着いた部屋の雰囲気） --- */
+        /* --- 基本設定 --- */
         body {
             font-family: "Helvetica Neue", Arial, sans-serif;
-            background-color: #e8e0d5;
+            background-color: #3e3228;
+            /* 部屋を暗くして雰囲気を出す */
             margin: 0;
             padding: 20px;
-            color: #4a3b32;
+            color: #d0c0a0;
         }
 
         header {
@@ -22,23 +23,24 @@
 
         h1 {
             font-family: 'Georgia', serif;
-            color: #3e2e25;
-            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+            color: #e0d0b0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
         }
 
         p {
-            color: #6b5a4d;
+            color: #a09080;
         }
 
-        /* --- 入力フォーム（変更なし） --- */
+        /* --- 入力フォーム（雰囲気に合わせて暗めに） --- */
         .input-area {
-            background: #fffcf5;
+            background: #5a4a3a;
             max-width: 600px;
-            margin: 0 auto 50px auto;
+            margin: 0 auto 60px auto;
             padding: 25px;
             border-radius: 4px;
-            border: 1px solid #dcd0c0;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #2a1a0a;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+            color: #e0d0b0;
         }
 
         .input-group {
@@ -50,6 +52,7 @@
             margin-bottom: 5px;
             font-weight: bold;
             font-size: 14px;
+            color: #d0c0a0;
         }
 
         input,
@@ -57,11 +60,12 @@
         textarea {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #2a1a0a;
             border-radius: 4px;
             box-sizing: border-box;
             font-size: 16px;
-            background: #fff;
+            background: #7a6a5a;
+            color: #fff;
         }
 
         textarea {
@@ -70,9 +74,9 @@
         }
 
         button.save-btn {
-            background-color: #5d4e43;
-            color: #fffcf5;
-            border: none;
+            background-color: #2a1a0a;
+            color: #c0b090;
+            border: 1px solid #c0b090;
             width: 100%;
             padding: 12px;
             border-radius: 4px;
@@ -83,84 +87,127 @@
         }
 
         button.save-btn:hover {
-            background-color: #7a685a;
+            background-color: #c0b090;
+            color: #2a1a0a;
         }
 
-        /* --- ★リアル本棚エリア★ --- */
+        /* --- ★3Dアンティーク本棚エリア★ --- */
         .grid-container {
             display: flex;
             flex-wrap: wrap;
             align-items: flex-end;
-            gap: 4px;
-            /* 本の間隔をさらに狭く */
+            gap: 15px;
+            /* 3Dの厚みが出るので間隔を少し広げる */
             max-width: 900px;
             margin: 0 auto;
-            padding: 25px 25px 15px 25px;
-            /* 奥まった感じを出すためpadding調整 */
+            padding: 40px 30px 20px 30px;
+            /* 上のpaddingを増やして視点を下げる */
 
-            /* 棚の質感と奥行き */
-            background-color: #c7b299;
-            /* 棚の奥の壁の色 */
-            /* 内側の強い影で奥行きを表現 */
-            box-shadow: inset 0 -20px 30px rgba(0, 0, 0, 0.2), 0 15px 20px rgba(0, 0, 0, 0.3);
-            border-bottom: 12px solid #8a735e;
-            /* 棚板の厚み */
+            /* リアルな木の棚の質感 */
+            background-color: #4a3a2a;
+            /* 棚の奥の闇 */
+            background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png');
+            /* 木目テクスチャ（フリー素材） */
+            /* 強い影で奥行きと、棚板の厚み */
+            box-shadow: inset 0 -30px 50px rgba(0, 0, 0, 0.6), 0 20px 30px rgba(0, 0, 0, 0.5);
+            border-bottom: 18px solid #2a1a0a;
+            /* 重厚な棚板 */
             border-radius: 4px;
-            min-height: 200px;
+            min-height: 220px;
+            transform-style: preserve-3d;
+            /* 3D表現のために必要 */
+            perspective: 1000px;
+            /* 遠近感 */
         }
 
-        /* --- ★リアルな本のデザイン（閉じた状態）★ --- */
+        /* --- ★究極の3D本（閉じた状態）★ --- */
         .card {
-            width: 42px;
-            /* 少し細く */
-            /* heightはJSでランダムに設定するのでここでは指定しない */
-            min-height: 150px;
-
-            border-radius: 2px 4px 4px 2px;
-            /* より角ばらせつつ、背は少し丸く */
-            /* 強い影で立体感を */
-            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3), inset 1px 1px 2px rgba(255, 255, 255, 0.2);
-
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            width: 40px;
+            /* 背表紙の幅 */
+            /* heightはJSでランダム指定 */
+            min-height: 160px;
             position: relative;
-            overflow: hidden;
             cursor: pointer;
-            transform-origin: left center;
+            transform-style: preserve-3d;
+            /* 子要素も3D配置 */
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
-            /* 背表紙の丸みと質感をグラデーションで表現 */
+            /* ▼▼▼ 背表紙のデザイン（全ジャンル共通：アンティークレザー） ▼▼▼ */
+            background-color: #6d4c41;
+            /* 基本の革色 */
+            /* 革の質感、丸み、汚れをグラデーションで表現 */
             background-image:
-                linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(255, 255, 255, 0.15) 40%, rgba(0, 0, 0, 0.1) 100%),
-                /* 丸み */
-                linear-gradient(90deg, transparent 4px, rgba(0, 0, 0, 0.2) 4px, transparent 5px);
-            /* 背表紙の溝 */
-        }
+                linear-gradient(to right, rgba(0, 0, 0, 0.6) 0%, rgba(255, 255, 255, 0.1) 20%, rgba(255, 255, 255, 0.1) 80%, rgba(0, 0, 0, 0.6) 100%),
+                url('https://www.transparenttextures.com/patterns/leather.png');
+            /* 革テクスチャ */
+            border-radius: 3px;
+            /* 少し丸みを帯びた背表紙 */
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: 1px solid rgba(0, 0, 0, 0.8);
 
-        .card:hover {
-            transform: translateY(-5px) scale(1.02);
-            z-index: 5;
+            /* 棚に落ちる影 */
             box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.4);
         }
 
-        /* ベースの背表紙色（グラデーションの下に敷く色） */
-        .card[data-genre="movie"] {
-            background-color: #bf2a2a;
+        /* --- ★ここが3Dの魔法：斜め上からの視点を作る★ --- */
+
+        /* 1. 本の「上面」（ページの束）を作成 */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            /* 本体の少し上に配置（厚み分） */
+            left: 0;
+            width: 100%;
+            height: 10px;
+            /* 本の厚み */
+            background-color: #e0d0b0;
+            /* 古い紙の色 */
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
+            /* ページの線 */
+            background-size: 3px 100%;
+            transform-origin: bottom;
+            transform: skewX(-30deg);
+            /* 斜めに歪ませる */
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            box-sizing: border-box;
         }
 
-        /* 少し渋い赤 */
-        .card[data-genre="book"] {
-            background-color: #2e7d32;
+        /* 2. 本の「側面」（ページの束の小口）を作成 */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -10px;
+            /* 本体の右に配置（厚み分） */
+            width: 10px;
+            /* 本の厚み */
+            height: 100%;
+            background-color: #d0c0a0;
+            /* 上面より少し暗い紙の色（影） */
+            background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
+            /* ページの線 */
+            background-size: 100% 3px;
+            transform-origin: left;
+            transform: skewY(-30deg);
+            /* 斜めに歪ませる */
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            box-sizing: border-box;
         }
 
-        /* 深い緑 */
-        .card[data-genre="travel"] {
-            background-color: #1565c0;
+        /* ホバー時の動き */
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            /* 少し高く持ち上がる */
+            z-index: 10;
+            box-shadow: 10px 15px 25px rgba(0, 0, 0, 0.5);
+            /* 影も濃く */
         }
 
-        /* 落ち着いた青 */
 
         /* --- 本の中身（閉じた状態・縦書き） --- */
         .card-content {
-            padding: 12px 4px;
+            padding: 15px 5px;
             height: 100%;
             box-sizing: border-box;
             transition: all 0.4s;
@@ -172,8 +219,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-            /* 文字を彫り込んだように見せる */
+            /* 文字色を金色っぽくして箔押し風に */
+            color: #e0d0b0;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
         }
 
         .card:not(.open) .tag,
@@ -183,40 +231,48 @@
         }
 
         .title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             margin: 0;
-            line-height: 1.1;
-            max-height: 130px;
+            line-height: 1.2;
+            max-height: 140px;
             overflow: hidden;
-            color: rgba(255, 255, 255, 0.95);
+            letter-spacing: 1px;
         }
 
-        /* --- ★本が開いた状態のデザイン★ --- */
+
+        /* --- ★本が開いた状態のデザイン（3D解除）★ --- */
         .card.open {
             width: 320px;
             height: auto !important;
-            /* JSで設定したランダムな高さを打ち消す */
             min-height: 250px;
-            background-color: #fffcf5 !important;
-            /* 紙の色 */
+            background: #fffcf5 !important;
+            /* 開いたら紙の色 */
             color: #4a3b32 !important;
             box-shadow: 5px 10px 30px rgba(0, 0, 0, 0.3);
             z-index: 100;
-            /* 最前面 */
             border-radius: 2px;
             overflow: visible;
             transform: scale(1.05) !important;
-            /* 開いた本の中心の影（ノド）を表現 */
             background-image: linear-gradient(to right, #fffcf5 0%, #efebe0 48%, #d0c8b8 50%, #efebe0 52%, #fffcf5 100%) !important;
             cursor: default;
+            /* 開いたときは3Dの厚み（擬似要素）を隠す */
+        }
+
+        .card.open::before,
+        .card.open::after {
+            opacity: 0;
+            /* 完全に透明にする */
+            transition: opacity 0.2s;
+            /* 一瞬で消す */
         }
 
         .card.open .card-content {
             writing-mode: horizontal-tb;
             display: block;
-            padding: 30px;
+            padding: 35px;
             text-shadow: none;
+            color: #4a3b32;
         }
 
         .card.open .title {
@@ -224,6 +280,7 @@
             margin-bottom: 20px;
             color: #333;
             max-height: none;
+            letter-spacing: normal;
         }
 
         /* 開いた状態のタグ */
@@ -238,6 +295,7 @@
             box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
         }
 
+        /* 開いたときのタグ色は維持 */
         .tag-movie {
             background-color: #bf2a2a;
         }
@@ -250,7 +308,6 @@
             background-color: #1565c0;
         }
 
-        /* 開いた状態の感想 */
         .card.open .comment {
             display: block;
             font-size: 16px;
@@ -259,7 +316,6 @@
             font-family: 'Georgia', serif;
         }
 
-        /* 削除ボタン */
         .delete-btn-wrap {
             position: absolute;
             top: 15px;
@@ -289,7 +345,7 @@
 
     <header>
         <h1>My Life Log</h1>
-        <p>あなただけの、不揃いな本棚。</p>
+        <p>斜め上から見下ろす、アンティークな書斎。</p>
     </header>
 
     <div class="input-area">
@@ -308,7 +364,7 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'my_life_log_data_v2'; // ※キー名を少し変えてデータをリセットします（高さ情報を反映させるため）
+        const STORAGE_KEY = 'my_life_log_data_v3'; // キーをv3に変更してデータをリセット
         document.addEventListener('DOMContentLoaded', () => { loadData(); });
 
         function addCard() {
@@ -316,7 +372,6 @@
             const genre = document.getElementById('inputGenre').value;
             const comment = document.getElementById('inputComment').value;
             if (title === "") { alert("タイトルを入力してください！"); return; }
-
             const currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
             const newData = { id: Date.now(), title: title, genre: genre, comment: comment };
             currentData.unshift(newData);
@@ -324,7 +379,6 @@
             renderCards(currentData);
             document.getElementById('inputTitle').value = ""; document.getElementById('inputComment').value = "";
         }
-
         function deleteCard(event, id) {
             event.stopPropagation();
             if (!confirm("本当に削除しますか？")) return;
@@ -333,45 +387,28 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(currentData));
             renderCards(currentData);
         }
-
         function toggleCard(id) {
-            // 他に開いているカードがあれば閉じる（1つだけ開くようにする）
             const openCards = document.querySelectorAll('.card.open');
-            openCards.forEach(card => {
-                if (card.id !== 'card-' + id) {
-                    card.classList.remove('open');
-                }
-            });
+            openCards.forEach(card => { if (card.id !== 'card-' + id) card.classList.remove('open'); });
             document.getElementById('card-' + id).classList.toggle('open');
         }
-
         function loadData() {
             const currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
             renderCards(currentData);
         }
-
-        // 画面描画関数
         function renderCards(dataList) {
             const container = document.getElementById('cardContainer');
             container.innerHTML = "";
-
             dataList.forEach(data => {
                 let tagClass = ""; let tagName = "";
                 if (data.genre === "movie") { tagClass = "tag-movie"; tagName = "Movie"; }
                 else if (data.genre === "book") { tagClass = "tag-book"; tagName = "Book"; }
                 else { tagClass = "tag-travel"; tagName = "Travel"; }
-
-                // ★ここがポイント！ランダムな高さを生成 (155px 〜 175px)
-                // ※一度高さを決めたら固定したい場合はデータを保存する時に高さを決める必要がありますが、
-                // 今回はリロードのたびに高さが変わる「生きている本棚」仕様にしてみます。
-                const randomHeight = Math.floor(Math.random() * (175 - 155 + 1)) + 155;
-
-                // style属性で高さを直接指定する
+                // 高さは少し高めに設定 (170px - 190px)
+                const randomHeight = Math.floor(Math.random() * (190 - 170 + 1)) + 170;
                 const cardHTML = `
                     <div class="card" id="card-${data.id}" data-genre="${data.genre}" onclick="toggleCard(${data.id})" style="height: ${randomHeight}px;">
-                        <div class="delete-btn-wrap">
-                            <button class="delete-btn" onclick="deleteCard(event, ${data.id})">×</button>
-                        </div>
+                        <div class="delete-btn-wrap"><button class="delete-btn" onclick="deleteCard(event, ${data.id})">×</button></div>
                         <div class="card-content">
                             <span class="tag ${tagClass}">${tagName}</span>
                             <div class="title">${data.title}</div>
@@ -383,7 +420,6 @@
             });
         }
     </script>
-
 </body>
 
 </html>
