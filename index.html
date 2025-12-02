@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Life Log - Bookshelf</title>
+    <title>My Life Log - Real Bookshelf</title>
     <style>
-        /* --- 基本設定（壁紙など） --- */
+        /* --- 基本設定（少し暗めの落ち着いた部屋の雰囲気） --- */
         body {
             font-family: "Helvetica Neue", Arial, sans-serif;
-            background-color: #f0e6d2;
+            background-color: #e8e0d5;
             margin: 0;
             padding: 20px;
             color: #4a3b32;
@@ -23,9 +23,14 @@
         h1 {
             font-family: 'Georgia', serif;
             color: #3e2e25;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
         }
 
-        /* --- 入力フォーム --- */
+        p {
+            color: #6b5a4d;
+        }
+
+        /* --- 入力フォーム（変更なし） --- */
         .input-area {
             background: #fffcf5;
             max-width: 600px;
@@ -81,83 +86,96 @@
             background-color: #7a685a;
         }
 
-        /* --- 本棚エリア --- */
+        /* --- ★リアル本棚エリア★ --- */
         .grid-container {
             display: flex;
             flex-wrap: wrap;
             align-items: flex-end;
-            gap: 5px;
-            /* 本の間隔 */
+            gap: 4px;
+            /* 本の間隔をさらに狭く */
             max-width: 900px;
             margin: 0 auto;
-            padding: 20px 20px 15px 20px;
-            background-color: #d9c6a3;
-            border-bottom: 15px solid #8c7b65;
-            box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px 25px 15px 25px;
+            /* 奥まった感じを出すためpadding調整 */
+
+            /* 棚の質感と奥行き */
+            background-color: #c7b299;
+            /* 棚の奥の壁の色 */
+            /* 内側の強い影で奥行きを表現 */
+            box-shadow: inset 0 -20px 30px rgba(0, 0, 0, 0.2), 0 15px 20px rgba(0, 0, 0, 0.3);
+            border-bottom: 12px solid #8a735e;
+            /* 棚板の厚み */
             border-radius: 4px;
-            min-height: 180px;
-            /* 棚の高さを確保 */
+            min-height: 200px;
         }
 
-        /* --- 本（カード）のデザイン：閉じた状態（背表紙） --- */
+        /* --- ★リアルな本のデザイン（閉じた状態）★ --- */
         .card {
-            width: 45px;
-            height: 160px;
-            /* 背表紙サイズ */
-            background: #fff;
-            border-radius: 3px 5px 5px 3px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-            transition: all 0.4s ease-in-out;
-            /* アニメーションの時間と動き */
+            width: 42px;
+            /* 少し細く */
+            /* heightはJSでランダムに設定するのでここでは指定しない */
+            min-height: 150px;
+
+            border-radius: 2px 4px 4px 2px;
+            /* より角ばらせつつ、背は少し丸く */
+            /* 強い影で立体感を */
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3), inset 1px 1px 2px rgba(255, 255, 255, 0.2);
+
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
             overflow: hidden;
             cursor: pointer;
-            background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 5%, transparent 5%, transparent 95%, rgba(0, 0, 0, 0.05) 95%);
             transform-origin: left center;
-            /* 左端を中心に開く */
+
+            /* 背表紙の丸みと質感をグラデーションで表現 */
+            background-image:
+                linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(255, 255, 255, 0.15) 40%, rgba(0, 0, 0, 0.1) 100%),
+                /* 丸み */
+                linear-gradient(90deg, transparent 4px, rgba(0, 0, 0, 0.2) 4px, transparent 5px);
+            /* 背表紙の溝 */
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            z-index: 2;
+            transform: translateY(-5px) scale(1.02);
+            z-index: 5;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.4);
         }
 
-        /* ホバー時は少し浮くだけ */
-
-        /* 背表紙の色分け */
+        /* ベースの背表紙色（グラデーションの下に敷く色） */
         .card[data-genre="movie"] {
-            background-color: #d32f2f;
-            color: white;
+            background-color: #bf2a2a;
         }
 
+        /* 少し渋い赤 */
         .card[data-genre="book"] {
-            background-color: #388e3c;
-            color: white;
+            background-color: #2e7d32;
         }
 
+        /* 深い緑 */
         .card[data-genre="travel"] {
-            background-color: #1976d2;
-            color: white;
+            background-color: #1565c0;
         }
 
-        /* --- 本の中身（共通） --- */
+        /* 落ち着いた青 */
+
+        /* --- 本の中身（閉じた状態・縦書き） --- */
         .card-content {
-            padding: 15px 5px;
+            padding: 12px 4px;
             height: 100%;
             box-sizing: border-box;
-            transition: all 0.4s ease-in-out;
+            transition: all 0.4s;
         }
 
-        /* 閉じた状態の中身（縦書き） */
         .card:not(.open) .card-content {
             writing-mode: vertical-rl;
             text-orientation: mixed;
             display: flex;
             flex-direction: column;
             align-items: center;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+            /* 文字を彫り込んだように見せる */
         }
 
-        /* 閉じた状態では詳細を隠す */
         .card:not(.open) .tag,
         .card:not(.open) .comment,
         .card:not(.open) .delete-btn-wrap {
@@ -165,107 +183,104 @@
         }
 
         .title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             margin: 0;
-            line-height: 1.2;
-            max-height: 120px;
+            line-height: 1.1;
+            max-height: 130px;
             overflow: hidden;
-            transition: all 0.4s;
+            color: rgba(255, 255, 255, 0.95);
         }
 
         /* --- ★本が開いた状態のデザイン★ --- */
         .card.open {
-            width: 300px;
-            /* 幅を広げる */
-            height: auto;
-            /* 高さは自動 */
+            width: 320px;
+            height: auto !important;
+            /* JSで設定したランダムな高さを打ち消す */
             min-height: 250px;
             background-color: #fffcf5 !important;
-            /* 背景を紙の色に（importantで背表紙色を上書き） */
+            /* 紙の色 */
             color: #4a3b32 !important;
-            /* 文字色を戻す */
-            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
-            z-index: 10;
-            /* 最前面に */
-            border-radius: 5px;
+            box-shadow: 5px 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            /* 最前面 */
+            border-radius: 2px;
             overflow: visible;
-            /* 削除ボタンなどを表示可能に */
             transform: scale(1.05) !important;
-            /* 少し大きく表示 */
-            background-image: none;
-            /* 背表紙の線を消す */
+            /* 開いた本の中心の影（ノド）を表現 */
+            background-image: linear-gradient(to right, #fffcf5 0%, #efebe0 48%, #d0c8b8 50%, #efebe0 52%, #fffcf5 100%) !important;
             cursor: default;
         }
 
-        /* 開いた状態の中身（横書きに戻す） */
         .card.open .card-content {
             writing-mode: horizontal-tb;
-            /* 横書き */
             display: block;
-            padding: 25px;
+            padding: 30px;
+            text-shadow: none;
         }
 
         .card.open .title {
-            font-size: 22px;
-            margin-bottom: 15px;
+            font-size: 24px;
+            margin-bottom: 20px;
             color: #333;
             max-height: none;
-            /* タイトル全文表示 */
         }
 
         /* 開いた状態のタグ */
         .card.open .tag {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 5px 15px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: bold;
             color: white;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         .tag-movie {
-            background-color: #e50914;
+            background-color: #bf2a2a;
         }
 
         .tag-book {
-            background-color: #2e8b57;
+            background-color: #2e7d32;
         }
 
         .tag-travel {
-            background-color: #007bff;
+            background-color: #1565c0;
         }
 
         /* 開いた状態の感想 */
         .card.open .comment {
             display: block;
-            font-size: 15px;
-            line-height: 1.6;
+            font-size: 16px;
+            line-height: 1.8;
             white-space: pre-wrap;
+            font-family: 'Georgia', serif;
         }
 
-        /* 開いた状態の削除ボタンエリア */
+        /* 削除ボタン */
         .delete-btn-wrap {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 15px;
+            right: 15px;
         }
 
         .delete-btn {
-            background: #eee;
+            background: #f0eadd;
             border: none;
-            color: #999;
-            font-size: 16px;
-            width: 30px;
-            height: 30px;
+            color: #aca095;
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             cursor: pointer;
+            transition: 0.2s;
         }
 
         .delete-btn:hover {
-            background: #ffcccc;
-            color: red;
+            background: #ffdddd;
+            color: #d32f2f;
         }
     </style>
 </head>
@@ -274,7 +289,7 @@
 
     <header>
         <h1>My Life Log</h1>
-        <p>本棚の記録をクリックして開いてみよう</p>
+        <p>あなただけの、不揃いな本棚。</p>
     </header>
 
     <div class="input-area">
@@ -293,43 +308,41 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'my_life_log_data';
+        const STORAGE_KEY = 'my_life_log_data_v2'; // ※キー名を少し変えてデータをリセットします（高さ情報を反映させるため）
         document.addEventListener('DOMContentLoaded', () => { loadData(); });
 
-        // カードを追加して保存
         function addCard() {
             const title = document.getElementById('inputTitle').value;
             const genre = document.getElementById('inputGenre').value;
             const comment = document.getElementById('inputComment').value;
-
             if (title === "") { alert("タイトルを入力してください！"); return; }
 
             const currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
             const newData = { id: Date.now(), title: title, genre: genre, comment: comment };
-            currentData.unshift(newData); // 新しい本を左端に追加
+            currentData.unshift(newData);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(currentData));
             renderCards(currentData);
-
-            document.getElementById('inputTitle').value = "";
-            document.getElementById('inputComment').value = "";
+            document.getElementById('inputTitle').value = ""; document.getElementById('inputComment').value = "";
         }
 
-        // データを削除
         function deleteCard(event, id) {
-            event.stopPropagation(); // ★重要：親のカードをクリックしたことにならないようにする（開閉を止める）
+            event.stopPropagation();
             if (!confirm("本当に削除しますか？")) return;
-
             let currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
             currentData = currentData.filter(item => item.id !== id);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(currentData));
             renderCards(currentData);
         }
 
-        // ★新機能：カードの開閉を切り替える関数
         function toggleCard(id) {
-            const cardElement = document.getElementById('card-' + id);
-            // 'open' クラスが付いていれば外す、付いていなければ付ける
-            cardElement.classList.toggle('open');
+            // 他に開いているカードがあれば閉じる（1つだけ開くようにする）
+            const openCards = document.querySelectorAll('.card.open');
+            openCards.forEach(card => {
+                if (card.id !== 'card-' + id) {
+                    card.classList.remove('open');
+                }
+            });
+            document.getElementById('card-' + id).classList.toggle('open');
         }
 
         function loadData() {
@@ -337,7 +350,7 @@
             renderCards(currentData);
         }
 
-        // 画面描画
+        // 画面描画関数
         function renderCards(dataList) {
             const container = document.getElementById('cardContainer');
             container.innerHTML = "";
@@ -348,9 +361,14 @@
                 else if (data.genre === "book") { tagClass = "tag-book"; tagName = "Book"; }
                 else { tagClass = "tag-travel"; tagName = "Travel"; }
 
-                // HTML組み立て（クリックイベントとIDを追加）
+                // ★ここがポイント！ランダムな高さを生成 (155px 〜 175px)
+                // ※一度高さを決めたら固定したい場合はデータを保存する時に高さを決める必要がありますが、
+                // 今回はリロードのたびに高さが変わる「生きている本棚」仕様にしてみます。
+                const randomHeight = Math.floor(Math.random() * (175 - 155 + 1)) + 155;
+
+                // style属性で高さを直接指定する
                 const cardHTML = `
-                    <div class="card" id="card-${data.id}" data-genre="${data.genre}" onclick="toggleCard(${data.id})">
+                    <div class="card" id="card-${data.id}" data-genre="${data.genre}" onclick="toggleCard(${data.id})" style="height: ${randomHeight}px;">
                         <div class="delete-btn-wrap">
                             <button class="delete-btn" onclick="deleteCard(event, ${data.id})">×</button>
                         </div>
