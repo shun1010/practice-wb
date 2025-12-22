@@ -1,425 +1,683 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Life Log - 3D Antique Bookshelf</title>
+    <title>Cinema Typing</title>
+    <!-- Tailwind CSS (デザイン用) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons (アイコン用) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
-        /* --- 基本設定 --- */
+        /* カスタムアニメーション設定 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap');
+
         body {
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            background-color: #3e3228;
-            /* 部屋を暗くして雰囲気を出す */
-            margin: 0;
-            padding: 20px;
-            color: #d0c0a0;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        .font-mono {
+            font-family: 'Roboto Mono', monospace;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 40px;
+        @keyframes progressBarStripes {
+            from { background-position: 10px 0; }
+            to { background-position: 0 0; }
+        }
+        .animate-stripes {
+            background-size: 10px 10px;
+            background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+            animation: progressBarStripes 1s linear infinite;
         }
 
-        h1 {
-            font-family: 'Georgia', serif;
-            color: #e0d0b0;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        .shake-animation {
+            animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
 
-        p {
-            color: #a09080;
-        }
-
-        /* --- 入力フォーム（雰囲気に合わせて暗めに） --- */
-        .input-area {
-            background: #5a4a3a;
-            max-width: 600px;
-            margin: 0 auto 60px auto;
-            padding: 25px;
-            border-radius: 4px;
-            border: 1px solid #2a1a0a;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
-            color: #e0d0b0;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            font-size: 14px;
-            color: #d0c0a0;
-        }
-
-        input,
-        select,
-        textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #2a1a0a;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 16px;
-            background: #7a6a5a;
-            color: #fff;
-        }
-
-        textarea {
-            height: 80px;
-            resize: vertical;
-        }
-
-        button.save-btn {
-            background-color: #2a1a0a;
-            color: #c0b090;
-            border: 1px solid #c0b090;
-            width: 100%;
-            padding: 12px;
-            border-radius: 4px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        button.save-btn:hover {
-            background-color: #c0b090;
-            color: #2a1a0a;
-        }
-
-        /* --- ★3Dアンティーク本棚エリア★ --- */
-        .grid-container {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            gap: 15px;
-            /* 3Dの厚みが出るので間隔を少し広げる */
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 30px 20px 30px;
-            /* 上のpaddingを増やして視点を下げる */
-
-            /* リアルな木の棚の質感 */
-            background-color: #4a3a2a;
-            /* 棚の奥の闇 */
-            background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png');
-            /* 木目テクスチャ（フリー素材） */
-            /* 強い影で奥行きと、棚板の厚み */
-            box-shadow: inset 0 -30px 50px rgba(0, 0, 0, 0.6), 0 20px 30px rgba(0, 0, 0, 0.5);
-            border-bottom: 18px solid #2a1a0a;
-            /* 重厚な棚板 */
-            border-radius: 4px;
-            min-height: 220px;
-            transform-style: preserve-3d;
-            /* 3D表現のために必要 */
-            perspective: 1000px;
-            /* 遠近感 */
-        }
-
-        /* --- ★究極の3D本（閉じた状態）★ --- */
-        .card {
-            width: 40px;
-            /* 背表紙の幅 */
-            /* heightはJSでランダム指定 */
-            min-height: 160px;
-            position: relative;
-            cursor: pointer;
-            transform-style: preserve-3d;
-            /* 子要素も3D配置 */
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-
-            /* ▼▼▼ 背表紙のデザイン（全ジャンル共通：アンティークレザー） ▼▼▼ */
-            background-color: #6d4c41;
-            /* 基本の革色 */
-            /* 革の質感、丸み、汚れをグラデーションで表現 */
-            background-image:
-                linear-gradient(to right, rgba(0, 0, 0, 0.6) 0%, rgba(255, 255, 255, 0.1) 20%, rgba(255, 255, 255, 0.1) 80%, rgba(0, 0, 0, 0.6) 100%),
-                url('https://www.transparenttextures.com/patterns/leather.png');
-            /* 革テクスチャ */
-            border-radius: 3px;
-            /* 少し丸みを帯びた背表紙 */
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-            border-right: 1px solid rgba(0, 0, 0, 0.8);
-
-            /* 棚に落ちる影 */
-            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.4);
-        }
-
-        /* --- ★ここが3Dの魔法：斜め上からの視点を作る★ --- */
-
-        /* 1. 本の「上面」（ページの束）を作成 */
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            /* 本体の少し上に配置（厚み分） */
-            left: 0;
-            width: 100%;
-            height: 10px;
-            /* 本の厚み */
-            background-color: #e0d0b0;
-            /* 古い紙の色 */
-            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
-            /* ページの線 */
-            background-size: 3px 100%;
-            transform-origin: bottom;
-            transform: skewX(-30deg);
-            /* 斜めに歪ませる */
-            border: 1px solid rgba(0, 0, 0, 0.2);
-            box-sizing: border-box;
-        }
-
-        /* 2. 本の「側面」（ページの束の小口）を作成 */
-        .card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: -10px;
-            /* 本体の右に配置（厚み分） */
-            width: 10px;
-            /* 本の厚み */
-            height: 100%;
-            background-color: #d0c0a0;
-            /* 上面より少し暗い紙の色（影） */
-            background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
-            /* ページの線 */
-            background-size: 100% 3px;
-            transform-origin: left;
-            transform: skewY(-30deg);
-            /* 斜めに歪ませる */
-            border: 1px solid rgba(0, 0, 0, 0.2);
-            box-sizing: border-box;
-        }
-
-        /* ホバー時の動き */
-        .card:hover {
-            transform: translateY(-10px) scale(1.02);
-            /* 少し高く持ち上がる */
-            z-index: 10;
-            box-shadow: 10px 15px 25px rgba(0, 0, 0, 0.5);
-            /* 影も濃く */
-        }
-
-
-        /* --- 本の中身（閉じた状態・縦書き） --- */
-        .card-content {
-            padding: 15px 5px;
-            height: 100%;
-            box-sizing: border-box;
-            transition: all 0.4s;
-        }
-
-        .card:not(.open) .card-content {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* 文字色を金色っぽくして箔押し風に */
-            color: #e0d0b0;
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
-        }
-
-        .card:not(.open) .tag,
-        .card:not(.open) .comment,
-        .card:not(.open) .delete-btn-wrap {
+        /* 画面切り替え用ユーティリティ */
+        .screen {
             display: none;
-        }
-
-        .title {
-            font-size: 14px;
-            font-weight: bold;
-            margin: 0;
-            line-height: 1.2;
-            max-height: 140px;
-            overflow: hidden;
-            letter-spacing: 1px;
-        }
-
-
-        /* --- ★本が開いた状態のデザイン（3D解除）★ --- */
-        .card.open {
-            width: 320px;
-            height: auto !important;
-            min-height: 250px;
-            background: #fffcf5 !important;
-            /* 開いたら紙の色 */
-            color: #4a3b32 !important;
-            box-shadow: 5px 10px 30px rgba(0, 0, 0, 0.3);
-            z-index: 100;
-            border-radius: 2px;
-            overflow: visible;
-            transform: scale(1.05) !important;
-            background-image: linear-gradient(to right, #fffcf5 0%, #efebe0 48%, #d0c8b8 50%, #efebe0 52%, #fffcf5 100%) !important;
-            cursor: default;
-            /* 開いたときは3Dの厚み（擬似要素）を隠す */
-        }
-
-        .card.open::before,
-        .card.open::after {
             opacity: 0;
-            /* 完全に透明にする */
-            transition: opacity 0.2s;
-            /* 一瞬で消す */
+            transition: opacity 0.3s ease-in-out;
         }
-
-        .card.open .card-content {
-            writing-mode: horizontal-tb;
+        .screen.active {
             display: block;
-            padding: 35px;
-            text-shadow: none;
-            color: #4a3b32;
-        }
-
-        .card.open .title {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #333;
-            max-height: none;
-            letter-spacing: normal;
-        }
-
-        /* 開いた状態のタグ */
-        .card.open .tag {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
-            margin-bottom: 20px;
-            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
-        }
-
-        /* 開いたときのタグ色は維持 */
-        .tag-movie {
-            background-color: #bf2a2a;
-        }
-
-        .tag-book {
-            background-color: #2e7d32;
-        }
-
-        .tag-travel {
-            background-color: #1565c0;
-        }
-
-        .card.open .comment {
-            display: block;
-            font-size: 16px;
-            line-height: 1.8;
-            white-space: pre-wrap;
-            font-family: 'Georgia', serif;
-        }
-
-        .delete-btn-wrap {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-        }
-
-        .delete-btn {
-            background: #f0eadd;
-            border: none;
-            color: #aca095;
-            font-size: 20px;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .delete-btn:hover {
-            background: #ffdddd;
-            color: #d32f2f;
+            opacity: 1;
         }
     </style>
 </head>
+<body class="min-h-screen bg-slate-50 text-gray-800 selection:bg-blue-200 flex flex-col">
 
-<body>
+    <!-- ヘッダー -->
+    <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+            <!-- スコア表示 -->
+            <div class="flex items-center gap-4">
+                <div class="flex flex-col">
+                    <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">獲得金額</span>
+                    <div class="flex items-center gap-1 text-green-600">
+                        <i data-lucide="dollar-sign" class="w-6 h-6 fill-green-600"></i>
+                        <span id="score-display" class="text-3xl font-bold font-mono tracking-tight">0</span>
+                    </div>
+                </div>
+            </div>
 
-    <header>
-        <h1>My Life Log</h1>
-        <p>斜め上から見下ろす、アンティークな書斎。</p>
+            <!-- タイトル（PCのみ） -->
+            <div class="absolute left-1/2 transform -translate-x-1/2 hidden md:block text-center">
+                <h1 class="text-xl font-black text-slate-800 tracking-widest uppercase flex items-center gap-2">
+                    <i data-lucide="film" class="w-5 h-5 text-blue-500"></i> Cinema Typing
+                </h1>
+            </div>
+
+            <!-- タイマー -->
+            <div class="flex items-center gap-4">
+                <div class="bg-slate-100 px-4 py-2 rounded-xl flex items-center gap-2 border border-slate-200 shadow-inner">
+                    <i data-lucide="clock" id="clock-icon" class="w-5 h-5 text-slate-500"></i>
+                    <span class="text-2xl font-bold font-mono text-slate-700">
+                        <span id="time-display">60</span><span class="text-sm ml-1 font-normal text-slate-400">秒</span>
+                    </span>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <div class="input-area">
-        <div class="input-group"><label>タイトル</label><input type="text" id="inputTitle" placeholder="例：アベンジャーズ"></div>
-        <div class="input-group"><label>ジャンル</label><select id="inputGenre">
-                <option value="movie">Movie (映画)</option>
-                <option value="book">Book (本)</option>
-                <option value="travel">Travel (旅行)</option>
-            </select></div>
-        <div class="input-group"><label>感想・メモ</label><textarea id="inputComment" placeholder="感想を入力..."></textarea>
+    <!-- メインエリア -->
+    <main class="flex-grow flex flex-col items-center justify-center p-4 w-full max-w-5xl mx-auto relative">
+
+        <!-- 1. メニュー画面 -->
+        <div id="screen-menu" class="screen active w-full max-w-2xl text-center space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="space-y-4">
+                <div class="inline-block p-4 bg-white rounded-full shadow-lg mb-4">
+                    <i data-lucide="film" class="w-16 h-16 text-blue-500"></i>
+                </div>
+                <h2 class="text-5xl md:text-6xl font-black text-slate-800 tracking-tight">
+                    MASTER THE <span class="text-blue-600">SCRIPT</span>
+                </h2>
+                <p class="text-xl text-slate-500 font-medium max-w-lg mx-auto">
+                    名作映画やドラマの台詞をタイプして、賞金を稼ごう。<br/>コンボを繋げれば制限時間が延長されるぞ。
+                </p>
+                
+                <!-- ハイスコア -->
+                <div class="inline-flex items-center gap-2 px-6 py-2 bg-yellow-50 rounded-full border border-yellow-200 text-yellow-800 font-bold shadow-sm">
+                    <i data-lucide="crown" class="w-5 h-5 fill-yellow-500 text-yellow-600"></i>
+                    <span>自己ベスト: $<span id="highscore-display">0</span></span>
+                </div>
+            </div>
+
+            <!-- 難易度選択 -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-center gap-2 text-gray-500 font-bold text-sm uppercase tracking-widest">
+                    <i data-lucide="layers" class="w-4 h-4"></i> 難易度を選択
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="level-selector">
+                    <!-- JSでボタン生成 -->
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold rounded-full shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 mx-auto">
+                <i data-lucide="play" class="fill-current w-6 h-6"></i> ゲームスタート
+            </button>
         </div>
-        <button class="save-btn" onclick="addCard()">棚に入れる</button>
-    </div>
 
-    <div class="grid-container" id="cardContainer">
-    </div>
+        <!-- 2. プレイ画面 -->
+        <div id="screen-playing" class="screen w-full max-w-4xl space-y-8 relative">
+            
+            <!-- ボーナスゲージ -->
+            <div class="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
+                <div class="flex items-center gap-2 text-orange-500 font-bold whitespace-nowrap min-w-[120px]">
+                    <i data-lucide="zap" class="w-5 h-5 fill-orange-500"></i>
+                    <span>コンボ: <span id="streak-display">0</span></span>
+                </div>
+                
+                <div class="flex-grow h-6 bg-gray-100 rounded-full overflow-hidden relative">
+                    <div id="streak-bar" class="h-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-300 ease-out animate-stripes" style="width: 0%"></div>
+                    <div class="absolute right-0 top-0 h-full w-px bg-white/50"></div>
+                </div>
 
-    <script>
-        const STORAGE_KEY = 'my_life_log_data_v3'; // キーをv3に変更してデータをリセット
-        document.addEventListener('DOMContentLoaded', () => { loadData(); });
+                <div class="text-xs font-bold text-gray-400 whitespace-nowrap flex flex-col items-end leading-tight">
+                    <span>次のボーナスまで</span>
+                    <span class="text-orange-500">あと <span id="chars-left-display">30</span> 文字</span>
+                </div>
+            </div>
 
-        function addCard() {
-            const title = document.getElementById('inputTitle').value;
-            const genre = document.getElementById('inputGenre').value;
-            const comment = document.getElementById('inputComment').value;
-            if (title === "") { alert("タイトルを入力してください！"); return; }
-            const currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-            const newData = { id: Date.now(), title: title, genre: genre, comment: comment };
-            currentData.unshift(newData);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(currentData));
-            renderCards(currentData);
-            document.getElementById('inputTitle').value = ""; document.getElementById('inputComment').value = "";
-        }
-        function deleteCard(event, id) {
-            event.stopPropagation();
-            if (!confirm("本当に削除しますか？")) return;
-            let currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-            currentData = currentData.filter(item => item.id !== id);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(currentData));
-            renderCards(currentData);
-        }
-        function toggleCard(id) {
-            const openCards = document.querySelectorAll('.card.open');
-            openCards.forEach(card => { if (card.id !== 'card-' + id) card.classList.remove('open'); });
-            document.getElementById('card-' + id).classList.toggle('open');
-        }
-        function loadData() {
-            const currentData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-            renderCards(currentData);
-        }
-        function renderCards(dataList) {
-            const container = document.getElementById('cardContainer');
-            container.innerHTML = "";
-            dataList.forEach(data => {
-                let tagClass = ""; let tagName = "";
-                if (data.genre === "movie") { tagClass = "tag-movie"; tagName = "Movie"; }
-                else if (data.genre === "book") { tagClass = "tag-book"; tagName = "Book"; }
-                else { tagClass = "tag-travel"; tagName = "Travel"; }
-                // 高さは少し高めに設定 (170px - 190px)
-                const randomHeight = Math.floor(Math.random() * (190 - 170 + 1)) + 170;
-                const cardHTML = `
-                    <div class="card" id="card-${data.id}" data-genre="${data.genre}" onclick="toggleCard(${data.id})" style="height: ${randomHeight}px;">
-                        <div class="delete-btn-wrap"><button class="delete-btn" onclick="deleteCard(event, ${data.id})">×</button></div>
-                        <div class="card-content">
-                            <span class="tag ${tagClass}">${tagName}</span>
-                            <div class="title">${data.title}</div>
-                            <p class="comment">${data.comment}</p>
+            <!-- ボーナスポップアップ -->
+            <div id="bonus-popup" class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full z-30 transition-all duration-300 opacity-0 pointer-events-none">
+                <div class="bg-yellow-400 text-yellow-900 px-6 py-2 rounded-full font-black text-xl shadow-lg border-2 border-yellow-200 whitespace-nowrap">
+                    + 5 秒追加！
+                </div>
+            </div>
+
+            <!-- タイピングカード -->
+            <div id="typing-card" class="bg-white rounded-3xl p-10 md:p-14 shadow-xl border-2 border-white transition-all duration-200 text-center cursor-text relative overflow-hidden" onclick="focusInput()">
+                <!-- 背景装飾 -->
+                <div class="absolute top-0 right-0 p-4 opacity-5">
+                    <i data-lucide="film" class="w-32 h-32"></i>
+                </div>
+
+                <!-- 報酬バッジ -->
+                <div class="absolute top-6 right-6">
+                    <span id="reward-badge" class="px-3 py-1 rounded-full text-sm font-bold border bg-green-50 text-green-600 border-green-200">
+                        + $100
+                    </span>
+                </div>
+
+                <!-- テキスト表示エリア -->
+                <div class="mb-8 min-h-[120px] flex items-center justify-center">
+                    <p id="typing-text-area" class="leading-snug break-words tracking-wide text-3xl md:text-5xl font-mono text-gray-400">
+                        <!-- JSで文字を生成 -->
+                    </p>
+                </div>
+
+                <!-- 翻訳エリア -->
+                <div id="translation-area" class="transition-all duration-300 ease-in-out overflow-hidden max-h-32 opacity-100 mt-6">
+                    <div class="border-t border-gray-100 pt-6">
+                        <p id="translation-text" class="text-xl text-gray-600 font-serif italic mb-2">
+                            "日本語訳"
+                        </p>
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-2 text-sm text-gray-400 font-bold uppercase tracking-widest">
+                            <span id="character-name" class="text-gray-500">キャラ名</span>
+                            <span class="hidden md:inline mx-2 text-gray-300">|</span>
+                            <span id="source-name">作品名</span>
                         </div>
                     </div>
-                `;
-                container.insertAdjacentHTML('beforeend', cardHTML);
+                </div>
+
+                <!-- 隠し入力フィールド -->
+                <input type="text" id="hidden-input" class="absolute opacity-0 w-full h-full top-0 left-0 cursor-default" autocomplete="off">
+            </div>
+
+            <!-- 翻訳切り替えボタン -->
+            <div class="flex justify-center">
+                <button onclick="toggleTranslation()" id="translation-btn" class="flex items-center gap-2 px-6 py-2 rounded-full font-medium text-sm transition-all border bg-blue-50 text-blue-600 border-blue-200">
+                    <i data-lucide="eye-off" class="w-4 h-4"></i>
+                    <span>日本語訳を隠す</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. 終了画面 -->
+        <div id="screen-finished" class="screen w-full max-w-xl bg-white rounded-3xl p-10 shadow-2xl border border-gray-100 text-center animate-in zoom-in-95 duration-300">
+            <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="trophy" class="w-10 h-10 text-yellow-600"></i>
+            </div>
+            
+            <h2 class="text-4xl font-black text-gray-800 mb-2">給料日！</h2>
+            <p class="text-gray-500 mb-8">お疲れ様でした。今回の成績です。</p>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-green-50 p-6 rounded-2xl border border-green-100 relative">
+                    <p class="text-green-600 text-xs font-bold uppercase tracking-wider mb-2">獲得総額</p>
+                    <p id="result-score" class="text-4xl font-bold text-green-700 font-mono">$0</p>
+                    <span id="new-record-badge" class="hidden absolute bottom-2 left-1/2 transform -translate-x-1/2 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-bold rounded border border-yellow-200 whitespace-nowrap">
+                        自己ベスト更新！
+                    </span>
+                </div>
+                <div class="bg-orange-50 p-6 rounded-2xl border border-orange-100">
+                    <p class="text-orange-600 text-xs font-bold uppercase tracking-wider mb-2">最大コンボ</p>
+                    <p id="result-max-streak" class="text-4xl font-bold text-orange-700 font-mono">0</p>
+                </div>
+            </div>
+            
+            <div class="mb-8 text-sm text-gray-500">
+                過去最高額: <span class="font-bold text-gray-700">$<span id="result-highscore">0</span></span>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button onclick="startGame()" class="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl text-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 shadow-lg">
+                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i> もう一度プレイ
+                </button>
+                
+                <button onclick="goHome()" class="w-full py-3 bg-white hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-lg transition-all border border-gray-200 flex items-center justify-center gap-2">
+                    <i data-lucide="home" class="w-5 h-5"></i> ホームに戻る
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="p-6 text-center text-gray-400 text-xs border-t border-gray-100 mt-auto">
+        <p>&copy; 2024 Cinema Typing. All movie quotes belong to their respective copyright holders.</p>
+    </footer>
+
+    <!-- ゲームロジック -->
+    <script>
+        // --- データ定義 ---
+        const QUOTES_DATA = [
+            // Level 1
+            { text: "I'll be back.", translation: "また戻ってくる。", source: "The Terminator", character: "T-800", level: 1 },
+            { text: "May the Force be with you.", translation: "フォースと共にあらんことを。", source: "Star Wars", character: "Han Solo / General Dodonna", level: 1 },
+            { text: "It's showtime!", translation: "ショータイムだ！", source: "Beetlejuice", character: "Beetlejuice", level: 1 },
+            { text: "I see dead people.", translation: "死んだ人が見えるんだ。", source: "The Sixth Sense", character: "Cole Sear", level: 1 },
+            { text: "Here's Johnny!", translation: "お客様だよ！", source: "The Shining", character: "Jack Torrance", level: 1 },
+            { text: "Friends don't lie.", translation: "友達は嘘をつかない。", source: "Stranger Things", character: "Eleven", level: 1 },
+            { text: "Winter is coming.", translation: "冬来たる。", source: "Game of Thrones", character: "Ned Stark", level: 1 },
+            { text: "To infinity and beyond!", translation: "無限の彼方へ、さあ行くぞ！", source: "Toy Story", character: "Buzz Lightyear", level: 1 },
+            { text: "Bond. James Bond.", translation: "ボンド。ジェームズ・ボンドだ。", source: "Dr. No", character: "James Bond", level: 1 },
+            { text: "Hasta la vista, baby.", translation: "地獄で会おうぜ、ベイビー。", source: "Terminator 2", character: "T-800", level: 1 },
+            { text: "Why so serious?", translation: "なぜそんなに深刻なんだ？", source: "The Dark Knight", character: "The Joker", level: 1 },
+            { text: "E.T. phone home.", translation: "E.T. おうち電話。", source: "E.T.", character: "E.T.", level: 1 },
+            { text: "Show me the money!", translation: "金を見せろ！", source: "Jerry Maguire", character: "Rod Tidwell", level: 1 },
+            { text: "You're fired.", translation: "お前はクビだ。", source: "The Apprentice", character: "Donald Trump", level: 1 },
+            { text: "I am Iron Man.", translation: "私がアイアンマンだ。", source: "Avengers: Endgame", character: "Tony Stark", level: 1 },
+            { text: "Wakanda Forever!", translation: "ワカンダ・フォーエバー！", source: "Black Panther", character: "T'Challa", level: 1 },
+            { text: "O Captain! My Captain!", translation: "ああ船長、わが船長！", source: "Dead Poets Society", character: "Todd Anderson", level: 1 },
+            { text: "I am Groot.", translation: "私はグルート。", source: "Guardians of the Galaxy", character: "Groot", level: 1 },
+            { text: "Avengers, assemble.", translation: "アベンジャーズ、アッセンブル（集合）。", source: "Avengers: Endgame", character: "Captain America", level: 1 },
+            { text: "We have a Hulk.", translation: "こっちにはハルクがいる。", source: "The Avengers", character: "Tony Stark", level: 1 },
+            { text: "I love you 3000.", translation: "3000回愛してる。", source: "Avengers: Endgame", character: "Tony Stark", level: 1 },
+            { text: "Whatever it takes.", translation: "何としてでも。", source: "Avengers: Endgame", character: "Captain America", level: 1 },
+            { text: "Dance-off, bro!", translation: "ダンス・バトルだ！", source: "Guardians of the Galaxy", character: "Star-Lord", level: 1 },
+            // Level 2
+            { text: "I'm gonna make him an offer he can't refuse.", translation: "文句は言わせん（断れない提案をしてやる）。", source: "The Godfather", character: "Vito Corleone", level: 2 },
+            { text: "Toto, I've a feeling we're not in Kansas anymore.", translation: "トト、ここはもうカンザスじゃないみたい。", source: "The Wizard of Oz", character: "Dorothy Gale", level: 2 },
+            { text: "Here's looking at you, kid.", translation: "君の瞳に乾杯。", source: "Casablanca", character: "Rick Blaine", level: 2 },
+            { text: "You talking to me?", translation: "俺に言ってるのか？", source: "Taxi Driver", character: "Travis Bickle", level: 2 },
+            { text: "I am the one who knocks!", translation: "ドアをノックするのは俺だ！", source: "Breaking Bad", character: "Walter White", level: 2 },
+            { text: "Keep your friends close, but your enemies closer.", translation: "友は近くに置け。敵はもっと近くに置け。", source: "The Godfather Part II", character: "Michael Corleone", level: 2 },
+            { text: "With great power comes great responsibility.", translation: "大いなる力には、大いなる責任が伴う。", source: "Spider-Man", character: "Uncle Ben", level: 2 },
+            { text: "Houston, we have a problem.", translation: "ヒューストン、トラブル発生だ。", source: "Apollo 13", character: "Jim Lovell", level: 2 },
+            { text: "There's no place like home.", translation: "やっぱりお家が一番。", source: "The Wizard of Oz", character: "Dorothy Gale", level: 2 },
+            { text: "Mornings are for coffee and contemplation.", translation: "朝はコーヒーと思索のためにある。", source: "Stranger Things", character: "Jim Hopper", level: 2 },
+            { text: "I'm the king of the world!", translation: "世界は俺のものだ！", source: "Titanic", character: "Jack Dawson", level: 2 },
+            { text: "Carpe diem. Seize the day, boys.", translation: "カーペ・ディエム。今を生きろ、若者たちよ。", source: "Dead Poets Society", character: "John Keating", level: 2 },
+            { text: "Elementary, my dear Watson.", translation: "初歩的なことだよ、ワトソン君。", source: "Sherlock Holmes", character: "Sherlock Holmes", level: 2 },
+            { text: "I volunteer! I volunteer as tribute!", translation: "私が志願します！ 私が生け贄になります！", source: "The Hunger Games", character: "Katniss Everdeen", level: 2 },
+            { text: "On Wednesdays we wear pink.", translation: "水曜日はピンクを着るの。", source: "Mean Girls", character: "Karen Smith", level: 2 },
+            { text: "Nobody puts Baby in a corner.", translation: "ベイビーを隅っこになんか置かせない。", source: "Dirty Dancing", character: "Johnny Castle", level: 2 },
+            { text: "It's an entire world of just 64 squares.", translation: "たった64マスの盤上に、完全な世界があるの。", source: "The Queen's Gambit", character: "Beth Harmon", level: 2 },
+            { text: "That's my secret, Captain. I'm always angry.", translation: "それが秘密です、キャプテン。私は常に怒っている。", source: "The Avengers", character: "Bruce Banner", level: 2 },
+            { text: "Dormammu, I've come to bargain.", translation: "ドルマムゥ、取引に来た。", source: "Doctor Strange", character: "Doctor Strange", level: 2 },
+            { text: "I can do this all day.", translation: "まだやれるぞ（一日中だってできる）。", source: "Captain America: The First Avenger", character: "Captain America", level: 2 },
+            { text: "He's a friend from work!", translation: "仕事の友達なんだ！", source: "Thor: Ragnarok", character: "Thor", level: 2 },
+            { text: "Genius, billionaire, playboy, philanthropist.", translation: "天才、金持ち、遊び人、慈善家。", source: "The Avengers", character: "Tony Stark", level: 2 },
+            { text: "Nothing goes over my head. I would catch it.", translation: "何も頭上を通過したりしない。私が捕まえる。", source: "Guardians of the Galaxy", character: "Drax", level: 2 },
+            // Level 3
+            { text: "Life is like a box of chocolates. You never know what you're gonna get.", translation: "人生はチョコレートの箱みたいなもの。開けてみるまで中身はわからない。", source: "Forrest Gump", character: "Forrest Gump", level: 3 },
+            { text: "The first rule of Fight Club is: You do not talk about Fight Club.", translation: "ファイト・クラブのルールその1、ファイト・クラブのことを口外するな。", source: "Fight Club", character: "Tyler Durden", level: 3 },
+            { text: "You can't handle the truth!", translation: "お前たちに真実は扱えない！", source: "A Few Good Men", character: "Col. Jessup", level: 3 },
+            { text: "Just keep swimming. Just keep swimming. Just keep swimming, swimming, swimming.", translation: "泳ぎ続けましょ。泳ぎ続けて。泳いで、泳いで、泳ぐのよ。", source: "Finding Nemo", character: "Dory", level: 3 },
+            { text: "Don't let the noise of others' opinions drown out your own inner voice.", translation: "他人の意見という雑音に、自分の内なる声をかき消させてはいけない。", source: "Steve Jobs (Bio)", character: "Steve Jobs", level: 3 },
+            { text: "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.", translation: "十分な資産を持つ独身男性は妻を求めているに違いないというのは、普遍的な真理である。", source: "Pride & Prejudice", character: "Jane Austen (Narrator)", level: 3 },
+            { text: "Never forget what you are. The rest of the world will not. Wear it like armor, and it can never be used to hurt you.", translation: "自分が何者か決して忘れるな。世界は忘れてくれない。それを鎧のようにまとえば、決して傷つくことはない。", source: "Game of Thrones", character: "Tyrion Lannister", level: 3 },
+            { text: "I'm not a psychopath, I'm a high-functioning sociopath. Do your research.", translation: "僕はサイコパスじゃない、高機能社会不適合者だ。よく調べろ。", source: "Sherlock", character: "Sherlock Holmes", level: 3 },
+            { text: "It does not do to dwell on dreams and forget to live.", translation: "夢に耽って生きることを忘れてはいけない。", source: "Harry Potter", character: "Albus Dumbledore", level: 3 },
+            { text: "Here's to the ones who dream, foolish as they may seem.", translation: "夢を追いかける人々に乾杯。たとえ愚かに見えても。", source: "La La Land", character: "Mia Dolan", level: 3 },
+            { text: "I act as if I don't care if people dislike me. Deep down... I secretly enjoy it.", translation: "人に嫌われても平気なふりをしてるけど、心の奥底では…実はそれを楽しんでるの。", source: "Wednesday", character: "Wednesday Addams", level: 3 },
+            { text: "The hardest choices require the strongest wills.", translation: "最も困難な選択には、最強の意志が必要なのだ。", source: "Avengers: Infinity War", character: "Thanos", level: 3 },
+            { text: "Part of the journey is the end.", translation: "旅の一部は、終わりを迎えることだ。", source: "Avengers: Endgame", character: "Tony Stark", level: 3 },
+            { text: "I told you. I don't want to join your super-secret boy band.", translation: "言ったろ。君の超極秘アイドルグループに参加する気はないって。", source: "The Avengers", character: "Tony Stark", level: 3 },
+        ];
+
+        // --- 定数 ---
+        const INITIAL_TIME = 60;
+        const BONUS_TIME_THRESHOLD = 30;
+        const BONUS_TIME_AMOUNT = 5;
+
+        // --- 状態変数 ---
+        let gameState = 'menu'; // menu, playing, finished
+        let currentQuote = null;
+        let userInput = '';
+        let timeLeft = INITIAL_TIME;
+        let score = 0;
+        let streak = 0;
+        let streakProgress = 0;
+        let maxStreak = 0;
+        let highScore = 0;
+        let timerId = null;
+        let showTranslation = true;
+        let selectedLevel = 'all';
+
+        // --- DOM要素 ---
+        const dom = {
+            screens: {
+                menu: document.getElementById('screen-menu'),
+                playing: document.getElementById('screen-playing'),
+                finished: document.getElementById('screen-finished')
+            },
+            timeDisplay: document.getElementById('time-display'),
+            clockIcon: document.getElementById('clock-icon'),
+            scoreDisplay: document.getElementById('score-display'),
+            highscoreDisplay: document.getElementById('highscore-display'),
+            resultScore: document.getElementById('result-score'),
+            resultMaxStreak: document.getElementById('result-max-streak'),
+            resultHighscore: document.getElementById('result-highscore'),
+            newRecordBadge: document.getElementById('new-record-badge'),
+            typingText: document.getElementById('typing-text-area'),
+            hiddenInput: document.getElementById('hidden-input'),
+            typingCard: document.getElementById('typing-card'),
+            streakDisplay: document.getElementById('streak-display'),
+            streakBar: document.getElementById('streak-bar'),
+            charsLeftDisplay: document.getElementById('chars-left-display'),
+            bonusPopup: document.getElementById('bonus-popup'),
+            translationArea: document.getElementById('translation-area'),
+            translationText: document.getElementById('translation-text'),
+            characterName: document.getElementById('character-name'),
+            sourceName: document.getElementById('source-name'),
+            translationBtn: document.getElementById('translation-btn'),
+            rewardBadge: document.getElementById('reward-badge'),
+            levelSelector: document.getElementById('level-selector')
+        };
+
+        // --- 初期化 ---
+        window.onload = () => {
+            loadHighscore();
+            renderLevelSelector();
+            lucide.createIcons();
+            
+            // 入力監視
+            dom.hiddenInput.addEventListener('input', handleInput);
+            
+            // フォーカス監視（プレイ中のみ）
+            document.addEventListener('click', () => {
+                if (gameState === 'playing') focusInput();
             });
+        };
+
+        function loadHighscore() {
+            const saved = localStorage.getItem('cinemaTypingHighScore');
+            if (saved) {
+                highScore = parseInt(saved, 10);
+                dom.highscoreDisplay.textContent = highScore.toLocaleString();
+            }
         }
+
+        // --- 難易度セレクタ生成 ---
+        function renderLevelSelector() {
+            const levels = [
+                { id: 'all', label: 'すべて', desc: 'MIXED', color: 'bg-gray-100 text-gray-700 border-gray-200' },
+                { id: 1, label: '短文', desc: '$100', color: 'bg-green-50 text-green-700 border-green-200' },
+                { id: 2, label: '中文', desc: '$300', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+                { id: 3, label: '長文', desc: '$1,000', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+            ];
+
+            dom.levelSelector.innerHTML = levels.map(l => `
+                <button onclick="selectLevel('${l.id}')" 
+                    class="relative p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center justify-center gap-1
+                    ${selectedLevel === l.id 
+                        ? `${l.color.replace('bg-', 'bg-opacity-100 ')} border-current ring-2 ring-offset-2 ring-blue-200 transform scale-105 shadow-md`
+                        : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50 hover:border-gray-200'
+                    }">
+                    <span class="font-bold text-lg">${l.label}</span>
+                    <span class="text-xs font-mono opacity-80">${l.desc}</span>
+                    ${selectedLevel === l.id ? '<div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-current"></div>' : ''}
+                </button>
+            `).join('');
+        }
+
+        function selectLevel(id) {
+            selectedLevel = id === 'all' ? 'all' : parseInt(id);
+            renderLevelSelector();
+        }
+
+        // --- ゲーム制御 ---
+        function switchScreen(screenName) {
+            Object.values(dom.screens).forEach(el => el.classList.remove('active'));
+            dom.screens[screenName].classList.add('active');
+            
+            // 画面切り替え後にアイコンを再描画（念のため）
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            score = 0;
+            streak = 0;
+            streakProgress = 0;
+            maxStreak = 0;
+            timeLeft = INITIAL_TIME;
+            userInput = '';
+            
+            updateDisplay();
+            switchScreen('playing');
+            nextQuote();
+            startTimer();
+            focusInput();
+        }
+
+        function goHome() {
+            gameState = 'menu';
+            switchScreen('menu');
+        }
+
+        function startTimer() {
+            if (timerId) clearInterval(timerId);
+            timerId = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    endGame();
+                }
+                updateTimeDisplay();
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timerId);
+            gameState = 'finished';
+            
+            // ハイスコア更新
+            let isNewRecord = false;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('cinemaTypingHighScore', score.toString());
+                isNewRecord = true;
+                dom.highscoreDisplay.textContent = highScore.toLocaleString();
+            }
+
+            dom.resultScore.textContent = `$${score.toLocaleString()}`;
+            dom.resultMaxStreak.textContent = maxStreak;
+            dom.resultHighscore.textContent = highScore.toLocaleString();
+            
+            if (isNewRecord && score > 0) {
+                dom.newRecordBadge.classList.remove('hidden');
+            } else {
+                dom.newRecordBadge.classList.add('hidden');
+            }
+
+            switchScreen('finished');
+        }
+
+        function nextQuote() {
+            // 難易度フィルタリング
+            let candidates = QUOTES_DATA;
+            if (selectedLevel !== 'all') {
+                candidates = QUOTES_DATA.filter(q => q.level === selectedLevel);
+            }
+            if (candidates.length === 0) candidates = QUOTES_DATA;
+
+            const random = candidates[Math.floor(Math.random() * candidates.length)];
+            currentQuote = random;
+            userInput = '';
+            dom.hiddenInput.value = '';
+            
+            updateQuoteDisplay();
+            renderText();
+        }
+
+        // --- 入力処理 ---
+        function focusInput() {
+            dom.hiddenInput.focus();
+        }
+
+        function handleInput(e) {
+            if (gameState !== 'playing') return;
+            
+            const val = e.target.value;
+            const targetText = currentQuote.text;
+
+            // 文字数超過防止
+            if (val.length > targetText.length) {
+                dom.hiddenInput.value = userInput;
+                return;
+            }
+
+            // バックスペース判定
+            if (val.length < userInput.length) {
+                userInput = val;
+                streak = 0;
+                streakProgress = 0;
+                updateStreakDisplay();
+                renderText();
+                return;
+            }
+
+            const lastCharIndex = val.length - 1;
+            const isCorrect = val[lastCharIndex] === targetText[lastCharIndex];
+
+            if (isCorrect) {
+                userInput = val;
+                streak++;
+                if (streak > maxStreak) maxStreak = streak;
+                
+                // ボーナス処理
+                streakProgress++;
+                if (streakProgress >= BONUS_TIME_THRESHOLD) {
+                    timeLeft += BONUS_TIME_AMOUNT;
+                    streakProgress = 0;
+                    triggerBonusAnimation();
+                    updateTimeDisplay();
+                }
+                
+                setFeedback('correct');
+                
+                // 完了判定
+                if (userInput === targetText) {
+                    addScore();
+                    setTimeout(nextQuote, 200);
+                }
+            } else {
+                // ミス
+                dom.hiddenInput.value = userInput; // 入力をキャンセル
+                streak = 0;
+                streakProgress = 0;
+                setFeedback('wrong');
+            }
+            
+            updateStreakDisplay();
+            renderText();
+        }
+
+        function addScore() {
+            let money = 0;
+            if (currentQuote.level === 1) money = 100;
+            else if (currentQuote.level === 2) money = 300;
+            else money = 1000;
+            score += money;
+            updateDisplay();
+        }
+
+        // --- 表示更新 ---
+        function updateDisplay() {
+            dom.scoreDisplay.textContent = score.toLocaleString();
+            updateTimeDisplay();
+            updateStreakDisplay();
+        }
+
+        function updateTimeDisplay() {
+            dom.timeDisplay.textContent = timeLeft;
+            if (timeLeft < 10) {
+                dom.timeDisplay.parentElement.classList.add('text-red-500');
+                dom.clockIcon.classList.add('text-red-500', 'animate-pulse');
+                dom.clockIcon.classList.remove('text-slate-500');
+            } else {
+                dom.timeDisplay.parentElement.classList.remove('text-red-500');
+                dom.clockIcon.classList.remove('text-red-500', 'animate-pulse');
+                dom.clockIcon.classList.add('text-slate-500');
+            }
+        }
+
+        function updateStreakDisplay() {
+            dom.streakDisplay.textContent = streak;
+            const progressPercent = (streakProgress / BONUS_TIME_THRESHOLD) * 100;
+            dom.streakBar.style.width = `${progressPercent}%`;
+            dom.charsLeftDisplay.textContent = Math.max(0, BONUS_TIME_THRESHOLD - streakProgress);
+        }
+
+        function updateQuoteDisplay() {
+            // 報酬バッジ更新
+            let colorClass = "";
+            let amount = "";
+            if (currentQuote.level === 1) { colorClass = "bg-green-50 text-green-600 border-green-200"; amount = "$100"; }
+            else if (currentQuote.level === 2) { colorClass = "bg-blue-50 text-blue-600 border-blue-200"; amount = "$300"; }
+            else { colorClass = "bg-purple-50 text-purple-600 border-purple-200"; amount = "$1,000"; }
+            
+            dom.rewardBadge.className = `px-3 py-1 rounded-full text-sm font-bold border ${colorClass}`;
+            dom.rewardBadge.textContent = `+ ${amount}`;
+
+            // 翻訳情報更新
+            dom.translationText.textContent = `"${currentQuote.translation}"`;
+            dom.characterName.textContent = currentQuote.character;
+            dom.sourceName.textContent = currentQuote.source;
+        }
+
+        function renderText() {
+            const chars = currentQuote.text.split('');
+            const html = chars.map((char, index) => {
+                let classes = "transition-colors duration-100 ";
+                if (index < userInput.length) {
+                    if (userInput[index] === char) {
+                        classes += "text-blue-600 font-bold";
+                    } else {
+                        classes += "text-red-500 bg-red-100";
+                    }
+                } else if (index === userInput.length) {
+                    classes += "bg-blue-100 border-b-2 border-blue-500 text-gray-800 animate-pulse";
+                } else {
+                    classes += "text-gray-400";
+                }
+                return `<span class="${classes}">${char}</span>`;
+            }).join('');
+            
+            dom.typingText.innerHTML = html;
+        }
+
+        // --- UI/演出 ---
+        function setFeedback(type) {
+            dom.typingCard.classList.remove('border-white', 'border-red-400', 'border-blue-100', 'shake-animation');
+            
+            if (type === 'wrong') {
+                dom.typingCard.classList.add('border-red-400', 'shake-animation');
+                setTimeout(() => dom.typingCard.classList.remove('shake-animation'), 300);
+            } else if (type === 'correct') {
+                dom.typingCard.classList.add('border-blue-100');
+            } else {
+                dom.typingCard.classList.add('border-white');
+            }
+        }
+
+        function triggerBonusAnimation() {
+            dom.bonusPopup.classList.remove('opacity-0', 'pointer-events-none');
+            dom.bonusPopup.classList.add('animate-bounce');
+            setTimeout(() => {
+                dom.bonusPopup.classList.add('opacity-0', 'pointer-events-none');
+                dom.bonusPopup.classList.remove('animate-bounce');
+            }, 1000);
+        }
+
+        function toggleTranslation() {
+            showTranslation = !showTranslation;
+            if (showTranslation) {
+                dom.translationArea.classList.remove('max-h-0', 'opacity-0', 'mt-0');
+                dom.translationArea.classList.add('max-h-32', 'opacity-100', 'mt-6');
+                dom.translationBtn.innerHTML = `<i data-lucide="eye-off" class="w-4 h-4"></i><span>日本語訳を隠す</span>`;
+                dom.translationBtn.classList.replace('bg-white', 'bg-blue-50');
+                dom.translationBtn.classList.replace('text-gray-400', 'text-blue-600');
+            } else {
+                dom.translationArea.classList.remove('max-h-32', 'opacity-100', 'mt-6');
+                dom.translationArea.classList.add('max-h-0', 'opacity-0', 'mt-0');
+                dom.translationBtn.innerHTML = `<i data-lucide="eye" class="w-4 h-4"></i><span>日本語訳を表示</span>`;
+                dom.translationBtn.classList.replace('bg-blue-50', 'bg-white');
+                dom.translationBtn.classList.replace('text-blue-600', 'text-gray-400');
+            }
+            lucide.createIcons();
+        }
+
     </script>
 </body>
-
 </html>
