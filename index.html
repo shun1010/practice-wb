@@ -15,6 +15,7 @@
 
         body {
             font-family: 'Noto Sans JP', sans-serif;
+            transition: background-color 0.3s;
         }
         .font-mono {
             font-family: 'Roboto Mono', monospace;
@@ -38,6 +39,21 @@
             20%, 80% { transform: translate3d(2px, 0, 0); }
             30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
             40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* 残り時間が少ないときの緊急アラートアニメーション */
+        @keyframes urgentPulse {
+            0%, 100% { box-shadow: inset 0 0 0 0 rgba(239, 68, 68, 0); }
+            50% { box-shadow: inset 0 0 60px 20px rgba(239, 68, 68, 0.3); }
+        }
+        .urgent-mode {
+            animation: urgentPulse 1s infinite;
+            border: 4px solid #ef4444;
+        }
+        .urgent-text {
+            color: #ef4444 !important;
+            transform: scale(1.1);
+            transition: all 0.2s;
         }
 
         /* 画面切り替え用ユーティリティ */
@@ -77,7 +93,7 @@
 
             <!-- タイマー -->
             <div class="flex items-center gap-4">
-                <div class="bg-slate-100 px-4 py-2 rounded-xl flex items-center gap-2 border border-slate-200 shadow-inner">
+                <div id="timer-container" class="bg-slate-100 px-4 py-2 rounded-xl flex items-center gap-2 border border-slate-200 shadow-inner transition-all duration-300">
                     <i data-lucide="clock" id="clock-icon" class="w-5 h-5 text-slate-500"></i>
                     <span class="text-2xl font-bold font-mono text-slate-700">
                         <span id="time-display">60</span><span class="text-sm ml-1 font-normal text-slate-400">秒</span>
@@ -207,8 +223,8 @@
                 <i data-lucide="trophy" class="w-10 h-10 text-yellow-600"></i>
             </div>
             
-            <h2 class="text-4xl font-black text-gray-800 mb-2">給料日！</h2>
-            <p class="text-gray-500 mb-8">お疲れ様でした。今回の成績です。</p>
+            <h2 class="text-4xl font-black text-gray-800 mb-2" id="finish-title">給料日！</h2>
+            <p class="text-gray-500 mb-8" id="finish-message">お疲れ様でした。今回の成績です。</p>
 
             <div class="grid grid-cols-2 gap-4 mb-8">
                 <div class="bg-green-50 p-6 rounded-2xl border border-green-100 relative">
@@ -315,15 +331,16 @@
         ];
 
         // --- 定数 ---
-        const INITIAL_TIME = 60;
+        const BASE_TIME = 60; // 基本時間
         const BONUS_TIME_THRESHOLD = 30;
         const BONUS_TIME_AMOUNT = 5;
 
         // --- 状態変数 ---
         let gameState = 'menu'; // menu, playing, finished
         let currentQuote = null;
+        let availableQuotes = []; // 出題用プール
         let userInput = '';
-        let timeLeft = INITIAL_TIME;
+        let timeLeft = BASE_TIME;
         let score = 0;
         let streak = 0;
         let streakProgress = 0;
@@ -341,9 +358,12 @@
                 finished: document.getElementById('screen-finished')
             },
             timeDisplay: document.getElementById('time-display'),
+            timerContainer: document.getElementById('timer-container'),
             clockIcon: document.getElementById('clock-icon'),
             scoreDisplay: document.getElementById('score-display'),
             highscoreDisplay: document.getElementById('highscore-display'),
+            finishTitle: document.getElementById('finish-title'),
+            finishMessage: document.getElementById('finish-message'),
             resultScore: document.getElementById('result-score'),
             resultMaxStreak: document.getElementById('result-max-streak'),
             resultHighscore: document.getElementById('result-highscore'),
@@ -370,10 +390,7 @@
             renderLevelSelector();
             lucide.createIcons();
             
-            // 入力監視
             dom.hiddenInput.addEventListener('input', handleInput);
-            
-            // フォーカス監視（プレイ中のみ）
             document.addEventListener('click', () => {
                 if (gameState === 'playing') focusInput();
             });
@@ -387,13 +404,12 @@
             }
         }
 
-        // --- 難易度セレクタ生成 ---
         function renderLevelSelector() {
             const levels = [
                 { id: 'all', label: 'すべて', desc: 'MIXED', color: 'bg-gray-100 text-gray-700 border-gray-200' },
                 { id: 1, label: '短文', desc: '$100', color: 'bg-green-50 text-green-700 border-green-200' },
-                { id: 2, label: '中文', desc: '$300', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-                { id: 3, label: '長文', desc: '$1,000', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+                { id: 2, label: '中文', desc: '$300 (+10s)', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+                { id: 3, label: '長文', desc: '$1,000 (+20s)', color: 'bg-purple-50 text-purple-700 border-purple-200' },
             ];
 
             dom.levelSelector.innerHTML = levels.map(l => `
@@ -404,7 +420,7 @@
                         : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50 hover:border-gray-200'
                     }">
                     <span class="font-bold text-lg">${l.label}</span>
-                    <span class="text-xs font-mono opacity-80">${l.desc}</span>
+                    <span class="text-xs font-mono opacity-80 whitespace-nowrap">${l.desc}</span>
                     ${selectedLevel === l.id ? '<div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-current"></div>' : ''}
                 </button>
             `).join('');
@@ -419,8 +435,6 @@
         function switchScreen(screenName) {
             Object.values(dom.screens).forEach(el => el.classList.remove('active'));
             dom.screens[screenName].classList.add('active');
-            
-            // 画面切り替え後にアイコンを再描画（念のため）
             setTimeout(() => lucide.createIcons(), 50);
         }
 
@@ -430,8 +444,27 @@
             streak = 0;
             streakProgress = 0;
             maxStreak = 0;
-            timeLeft = INITIAL_TIME;
+            
+            // 時間設定（レベルボーナス）
+            let initialTime = BASE_TIME;
+            if (selectedLevel === 2) initialTime += 10;
+            if (selectedLevel === 3) initialTime += 20;
+            timeLeft = initialTime;
+            
             userInput = '';
+
+            // 出題プール作成（重複防止用）
+            let candidates = QUOTES_DATA;
+            if (selectedLevel !== 'all') {
+                candidates = QUOTES_DATA.filter(q => q.level === selectedLevel);
+            }
+            // 配列をコピーしてシャッフル
+            availableQuotes = [...candidates].sort(() => Math.random() - 0.5);
+            
+            // UIリセット
+            document.body.classList.remove('urgent-mode');
+            dom.timeDisplay.classList.remove('urgent-text');
+            dom.timerContainer.classList.remove('border-red-500', 'bg-red-50');
             
             updateDisplay();
             switchScreen('playing');
@@ -442,6 +475,7 @@
 
         function goHome() {
             gameState = 'menu';
+            document.body.classList.remove('urgent-mode');
             switchScreen('menu');
         }
 
@@ -451,17 +485,30 @@
                 timeLeft--;
                 if (timeLeft <= 0) {
                     timeLeft = 0;
-                    endGame();
+                    endGame(false); // false = タイムアップ
                 }
                 updateTimeDisplay();
             }, 1000);
         }
 
-        function endGame() {
+        function endGame(isComplete) {
             clearInterval(timerId);
             gameState = 'finished';
             
-            // ハイスコア更新
+            // 緊急モード解除
+            document.body.classList.remove('urgent-mode');
+
+            // タイトル・メッセージ変更
+            if (isComplete) {
+                dom.finishTitle.textContent = "全問クリア！";
+                dom.finishTitle.classList.add("text-blue-600");
+                dom.finishMessage.textContent = "素晴らしい！すべてのセリフをタイプしました！";
+            } else {
+                dom.finishTitle.textContent = "給料日！";
+                dom.finishTitle.classList.remove("text-blue-600");
+                dom.finishMessage.textContent = "お疲れ様でした。今回の成績です。";
+            }
+            
             let isNewRecord = false;
             if (score > highScore) {
                 highScore = score;
@@ -484,15 +531,13 @@
         }
 
         function nextQuote() {
-            // 難易度フィルタリング
-            let candidates = QUOTES_DATA;
-            if (selectedLevel !== 'all') {
-                candidates = QUOTES_DATA.filter(q => q.level === selectedLevel);
+            if (availableQuotes.length === 0) {
+                endGame(true); // true = コンプリート
+                return;
             }
-            if (candidates.length === 0) candidates = QUOTES_DATA;
 
-            const random = candidates[Math.floor(Math.random() * candidates.length)];
-            currentQuote = random;
+            // プールから1つ取り出す（末尾から）
+            currentQuote = availableQuotes.pop();
             userInput = '';
             dom.hiddenInput.value = '';
             
@@ -511,13 +556,11 @@
             const val = e.target.value;
             const targetText = currentQuote.text;
 
-            // 文字数超過防止
             if (val.length > targetText.length) {
                 dom.hiddenInput.value = userInput;
                 return;
             }
 
-            // バックスペース判定
             if (val.length < userInput.length) {
                 userInput = val;
                 streak = 0;
@@ -535,7 +578,6 @@
                 streak++;
                 if (streak > maxStreak) maxStreak = streak;
                 
-                // ボーナス処理
                 streakProgress++;
                 if (streakProgress >= BONUS_TIME_THRESHOLD) {
                     timeLeft += BONUS_TIME_AMOUNT;
@@ -546,14 +588,12 @@
                 
                 setFeedback('correct');
                 
-                // 完了判定
                 if (userInput === targetText) {
                     addScore();
                     setTimeout(nextQuote, 200);
                 }
             } else {
-                // ミス
-                dom.hiddenInput.value = userInput; // 入力をキャンセル
+                dom.hiddenInput.value = userInput;
                 streak = 0;
                 streakProgress = 0;
                 setFeedback('wrong');
@@ -581,14 +621,27 @@
 
         function updateTimeDisplay() {
             dom.timeDisplay.textContent = timeLeft;
-            if (timeLeft < 10) {
-                dom.timeDisplay.parentElement.classList.add('text-red-500');
+            
+            // 残り5秒以下の演出
+            if (timeLeft <= 5 && timeLeft > 0) {
+                document.body.classList.add('urgent-mode');
+                dom.timeDisplay.classList.add('urgent-text');
+                dom.timerContainer.classList.add('border-red-500', 'bg-red-50');
                 dom.clockIcon.classList.add('text-red-500', 'animate-pulse');
-                dom.clockIcon.classList.remove('text-slate-500');
-            } else {
-                dom.timeDisplay.parentElement.classList.remove('text-red-500');
-                dom.clockIcon.classList.remove('text-red-500', 'animate-pulse');
-                dom.clockIcon.classList.add('text-slate-500');
+            } else if (timeLeft > 5) {
+                document.body.classList.remove('urgent-mode');
+                dom.timeDisplay.classList.remove('urgent-text');
+                dom.timerContainer.classList.remove('border-red-500', 'bg-red-50');
+                
+                // 10秒以下（注意）
+                if (timeLeft < 10) {
+                    dom.timeDisplay.parentElement.classList.add('text-red-500');
+                    dom.clockIcon.classList.add('text-red-500');
+                } else {
+                    dom.timeDisplay.parentElement.classList.remove('text-red-500');
+                    dom.clockIcon.classList.remove('text-red-500', 'animate-pulse');
+                    dom.clockIcon.classList.add('text-slate-500');
+                }
             }
         }
 
@@ -600,7 +653,6 @@
         }
 
         function updateQuoteDisplay() {
-            // 報酬バッジ更新
             let colorClass = "";
             let amount = "";
             if (currentQuote.level === 1) { colorClass = "bg-green-50 text-green-600 border-green-200"; amount = "$100"; }
@@ -610,7 +662,6 @@
             dom.rewardBadge.className = `px-3 py-1 rounded-full text-sm font-bold border ${colorClass}`;
             dom.rewardBadge.textContent = `+ ${amount}`;
 
-            // 翻訳情報更新
             dom.translationText.textContent = `"${currentQuote.translation}"`;
             dom.characterName.textContent = currentQuote.character;
             dom.sourceName.textContent = currentQuote.source;
