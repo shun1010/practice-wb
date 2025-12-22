@@ -41,18 +41,31 @@
         .urgent-mode { animation: urgentPulse 1s infinite; border: 4px solid #ef4444; }
         .urgent-text { color: #ef4444 !important; transform: scale(1.1); transition: all 0.2s; }
 
-        .screen { display: none; opacity: 0; transition: opacity 0.3s ease-in-out; }
-        .screen.active { display: block; opacity: 1; }
+        /* 画面切り替え制御 (重要) */
+        .screen { 
+            display: none !important; /* 強制的に非表示 */
+            opacity: 0; 
+            transition: opacity 0.3s ease-in-out; 
+        }
+        .screen.active { 
+            display: block !important; /* active時のみ表示 */
+            opacity: 1; 
+        }
 
         /* --- フィルムカウントダウン演出 --- */
         #screen-countdown {
             background-color: #1a1a1a;
             color: #e5e5e5;
             overflow: hidden;
-            /* 親要素に関係なく画面全体に固定 */
             position: fixed; 
             top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 9999; /* 最前面 */
+            z-index: 9999;
+        }
+        /* カウントダウン画面が表示されるときは flex レイアウトにする */
+        #screen-countdown.active {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
         }
         
         /* フィルムの粒子ノイズ */
@@ -90,7 +103,6 @@
             100% { opacity: 0; }
         }
 
-        /* 周辺減光 (Vignette) */
         .vignette {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -98,7 +110,6 @@
             pointer-events: none;
         }
 
-        /* カウントダウンサークル */
         .countdown-circle {
             width: 300px; height: 300px;
             border: 8px solid #e5e5e5;
@@ -154,7 +165,6 @@
             </div>
 
             <div class="flex items-center gap-4">
-                <!-- 音量切り替えボタン -->
                 <button onclick="toggleMute()" id="mute-btn" class="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors" title="音のオン/オフ">
                     <i data-lucide="volume-2" class="w-5 h-5"></i>
                 </button>
@@ -199,7 +209,7 @@
                 </div>
             </div>
 
-            <button onclick="startPreGame()" class="px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold rounded-full shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 mx-auto">
+            <button onclick="startPreGame()" class="group relative px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold rounded-full shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 mx-auto z-10 cursor-pointer">
                 <i data-lucide="play" class="fill-current w-6 h-6"></i> ゲームスタート
             </button>
             <p class="text-xs text-gray-400 mt-2">※音が出ます</p>
@@ -283,9 +293,7 @@
                 過去最高額: <span class="font-bold text-gray-700">$<span id="result-highscore">0</span></span>
             </div>
 
-            <!-- シェアボタン -->
             <button onclick="shareOnX()" class="w-full mb-4 py-3 bg-black hover:bg-gray-800 text-white font-bold rounded-xl text-lg transition-all flex items-center justify-center gap-2">
-                <!-- X Logo (簡易) -->
                 <svg viewBox="0 0 24 24" class="w-5 h-5 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                 結果をXでシェアする
             </button>
@@ -305,8 +313,8 @@
         <p>&copy; 2024 Cinema Typing.</p>
     </footer>
 
-    <!-- 4. カウントダウン画面 (配置場所変更: body直下・固定配置) -->
-    <div id="screen-countdown" class="screen flex items-center justify-center">
+    <!-- 4. カウントダウン画面 (修正: activeクラスがない限り display: none になるように修正) -->
+    <div id="screen-countdown" class="screen">
         <div class="film-grain"></div>
         <div class="film-scratch"></div>
         <div class="film-scratch"></div>
@@ -323,30 +331,36 @@
 
     <!-- ゲームロジック -->
     <script>
-        // --- 簡易サウンドマネージャー（Web Audio API） ---
+        // --- 簡易サウンドマネージャー ---
         const Sound = {
             ctx: null,
             isMuted: false,
             init: function() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (this.ctx.state === 'suspended') {
-                    this.ctx.resume();
+                try {
+                    if (!this.ctx) {
+                        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (this.ctx.state === 'suspended') {
+                        this.ctx.resume();
+                    }
+                } catch (e) {
+                    console.log("Audio not supported or blocked");
                 }
             },
             playTone: function(freq, type, duration, vol = 0.1) {
                 if (this.isMuted || !this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + duration);
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) { }
             },
             type: function() { this.playTone(800, 'sine', 0.1, 0.1); },
             error: function() { this.playTone(150, 'sawtooth', 0.3, 0.2); },
@@ -483,12 +497,13 @@
         window.onload = () => {
             loadHighscore();
             renderLevelSelector();
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e) {}
+            
             dom.hiddenInput.addEventListener('input', handleInput);
             document.addEventListener('click', () => { if (gameState === 'playing') focusInput(); });
             
-            // 音声コンテキストの初期化
-            document.body.addEventListener('click', () => { Sound.init(); }, { once: true });
+            // 安全策: アイコン読み込みが遅延しても画面を表示
+            setTimeout(() => { document.body.style.opacity = '1'; }, 100);
         };
 
         function loadHighscore() {
@@ -504,7 +519,7 @@
             Sound.isMuted = !Sound.isMuted;
             const icon = Sound.isMuted ? 'volume-x' : 'volume-2';
             dom.muteBtn.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i>`;
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e) {}
         }
 
         // --- 難易度 ---
@@ -538,11 +553,8 @@
         function switchScreen(screenName) {
             Object.values(dom.screens).forEach(el => el.classList.remove('active'));
             dom.screens[screenName].classList.add('active');
-            
-            // スクロールリセット (重要)
-            window.scrollTo(0, 0);
-
-            setTimeout(() => lucide.createIcons(), 50);
+            window.scrollTo(0, 0); // スクロールリセット
+            try { lucide.createIcons(); } catch(e) {}
         }
 
         // STEP 1: ボタンを押すとカウントダウン開始
@@ -550,10 +562,7 @@
             Sound.init();
             gameState = 'countdown';
             switchScreen('countdown');
-            
-            // カウントダウン画面は fixed なのでスクロール不要だが念のため
             window.scrollTo(0, 0);
-            
             startCountdown();
         }
 
@@ -597,7 +606,7 @@
             dom.timerContainer.classList.remove('border-red-500', 'bg-red-50');
             
             updateDisplay();
-            switchScreen('playing'); // ここで scrollTo(0,0) が呼ばれる
+            switchScreen('playing');
             nextQuote();
             startTimer();
             focusInput();
@@ -813,7 +822,7 @@
                 dom.translationBtn.classList.replace('bg-blue-50', 'bg-white');
                 dom.translationBtn.classList.replace('text-blue-600', 'text-gray-400');
             }
-            lucide.createIcons();
+            try { lucide.createIcons(); } catch(e) {}
         }
 
         function shareOnX() {
