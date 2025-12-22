@@ -10,16 +10,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
-        /* カスタムアニメーション設定 */
+        /* --- カスタムスタイル --- */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap');
 
-        body {
-            font-family: 'Noto Sans JP', sans-serif;
-            transition: background-color 0.3s;
-        }
-        .font-mono {
-            font-family: 'Roboto Mono', monospace;
-        }
+        body { font-family: 'Noto Sans JP', sans-serif; transition: background-color 0.3s; }
+        .font-mono { font-family: 'Roboto Mono', monospace; }
 
         @keyframes progressBarStripes {
             from { background-position: 10px 0; }
@@ -31,9 +26,7 @@
             animation: progressBarStripes 1s linear infinite;
         }
 
-        .shake-animation {
-            animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
-        }
+        .shake-animation { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake {
             10%, 90% { transform: translate3d(-1px, 0, 0); }
             20%, 80% { transform: translate3d(2px, 0, 0); }
@@ -41,30 +34,101 @@
             40%, 60% { transform: translate3d(4px, 0, 0); }
         }
 
-        /* 残り時間が少ないときの緊急アラートアニメーション */
         @keyframes urgentPulse {
             0%, 100% { box-shadow: inset 0 0 0 0 rgba(239, 68, 68, 0); }
             50% { box-shadow: inset 0 0 60px 20px rgba(239, 68, 68, 0.3); }
         }
-        .urgent-mode {
-            animation: urgentPulse 1s infinite;
-            border: 4px solid #ef4444;
+        .urgent-mode { animation: urgentPulse 1s infinite; border: 4px solid #ef4444; }
+        .urgent-text { color: #ef4444 !important; transform: scale(1.1); transition: all 0.2s; }
+
+        .screen { display: none; opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .screen.active { display: block; opacity: 1; }
+
+        /* --- フィルムカウントダウン演出 --- */
+        #screen-countdown {
+            background-color: #1a1a1a;
+            color: #e5e5e5;
+            overflow: hidden;
+            /* 親要素に関係なく画面全体に固定 */
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 9999; /* 最前面 */
         }
-        .urgent-text {
-            color: #ef4444 !important;
-            transform: scale(1.1);
-            transition: all 0.2s;
+        
+        /* フィルムの粒子ノイズ */
+        .film-grain {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+            opacity: 0.4;
+            pointer-events: none;
+            animation: grainFlicker 0.1s infinite;
+        }
+        @keyframes grainFlicker {
+            0% { transform: translate(0,0); }
+            25% { transform: translate(-2px, 2px); }
+            50% { transform: translate(2px, -2px); }
+            75% { transform: translate(-2px, -2px); }
+            100% { transform: translate(2px, 2px); }
         }
 
-        /* 画面切り替え用ユーティリティ */
-        .screen {
-            display: none;
+        /* 古い映画のような縦傷 */
+        .film-scratch {
+            position: absolute;
+            top: 0; left: 20%; width: 2px; height: 100%;
+            background: rgba(255,255,255,0.2);
+            animation: scratchMove 0.4s infinite linear;
             opacity: 0;
-            transition: opacity 0.3s ease-in-out;
         }
-        .screen.active {
-            display: block;
-            opacity: 1;
+        .film-scratch:nth-child(2) { left: 60%; animation-delay: 0.1s; width: 1px; }
+        .film-scratch:nth-child(3) { left: 80%; animation-delay: 0.3s; width: 3px; }
+
+        @keyframes scratchMove {
+            0% { opacity: 0; transform: translateX(0); }
+            10% { opacity: 0.6; }
+            20% { opacity: 0; transform: translateX(10px); }
+            100% { opacity: 0; }
+        }
+
+        /* 周辺減光 (Vignette) */
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 40%, black 120%);
+            pointer-events: none;
+        }
+
+        /* カウントダウンサークル */
+        .countdown-circle {
+            width: 300px; height: 300px;
+            border: 8px solid #e5e5e5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+        
+        .crosshair-h { position: absolute; width: 100%; height: 2px; background: rgba(255,255,255,0.5); top: 50%; left: 0; }
+        .crosshair-v { position: absolute; width: 2px; height: 100%; background: rgba(255,255,255,0.5); top: 0; left: 50%; }
+
+        .radar-sweep {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.4) 360deg);
+            animation: radarSpin 1s linear infinite;
+            opacity: 0.3;
+        }
+        @keyframes radarSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .countdown-number {
+            font-family: 'Times New Roman', serif;
+            font-size: 180px;
+            font-weight: bold;
+            line-height: 1;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -73,7 +137,6 @@
     <!-- ヘッダー -->
     <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20">
         <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
-            <!-- スコア表示 -->
             <div class="flex items-center gap-4">
                 <div class="flex flex-col">
                     <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">獲得金額</span>
@@ -84,15 +147,18 @@
                 </div>
             </div>
 
-            <!-- タイトル（PCのみ） -->
             <div class="absolute left-1/2 transform -translate-x-1/2 hidden md:block text-center">
                 <h1 class="text-xl font-black text-slate-800 tracking-widest uppercase flex items-center gap-2">
                     <i data-lucide="film" class="w-5 h-5 text-blue-500"></i> Cinema Typing
                 </h1>
             </div>
 
-            <!-- タイマー -->
             <div class="flex items-center gap-4">
+                <!-- 音量切り替えボタン -->
+                <button onclick="toggleMute()" id="mute-btn" class="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors" title="音のオン/オフ">
+                    <i data-lucide="volume-2" class="w-5 h-5"></i>
+                </button>
+
                 <div id="timer-container" class="bg-slate-100 px-4 py-2 rounded-xl flex items-center gap-2 border border-slate-200 shadow-inner transition-all duration-300">
                     <i data-lucide="clock" id="clock-icon" class="w-5 h-5 text-slate-500"></i>
                     <span class="text-2xl font-bold font-mono text-slate-700">
@@ -118,84 +184,61 @@
                 <p class="text-xl text-slate-500 font-medium max-w-lg mx-auto">
                     名作映画やドラマの台詞をタイプして、賞金を稼ごう。<br/>コンボを繋げれば制限時間が延長されるぞ。
                 </p>
-                
-                <!-- ハイスコア -->
                 <div class="inline-flex items-center gap-2 px-6 py-2 bg-yellow-50 rounded-full border border-yellow-200 text-yellow-800 font-bold shadow-sm">
                     <i data-lucide="crown" class="w-5 h-5 fill-yellow-500 text-yellow-600"></i>
                     <span>自己ベスト: $<span id="highscore-display">0</span></span>
                 </div>
             </div>
 
-            <!-- 難易度選択 -->
             <div class="space-y-4">
                 <div class="flex items-center justify-center gap-2 text-gray-500 font-bold text-sm uppercase tracking-widest">
                     <i data-lucide="layers" class="w-4 h-4"></i> 難易度を選択
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="level-selector">
-                    <!-- JSでボタン生成 -->
+                    <!-- JSで生成 -->
                 </div>
             </div>
 
-            <button onclick="startGame()" class="px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold rounded-full shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 mx-auto">
+            <button onclick="startPreGame()" class="px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold rounded-full shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 mx-auto">
                 <i data-lucide="play" class="fill-current w-6 h-6"></i> ゲームスタート
             </button>
+            <p class="text-xs text-gray-400 mt-2">※音が出ます</p>
         </div>
 
         <!-- 2. プレイ画面 -->
         <div id="screen-playing" class="screen w-full max-w-4xl space-y-8 relative">
-            
-            <!-- ボーナスゲージ -->
             <div class="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
                 <div class="flex items-center gap-2 text-orange-500 font-bold whitespace-nowrap min-w-[120px]">
                     <i data-lucide="zap" class="w-5 h-5 fill-orange-500"></i>
                     <span>コンボ: <span id="streak-display">0</span></span>
                 </div>
-                
                 <div class="flex-grow h-6 bg-gray-100 rounded-full overflow-hidden relative">
                     <div id="streak-bar" class="h-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-300 ease-out animate-stripes" style="width: 0%"></div>
                     <div class="absolute right-0 top-0 h-full w-px bg-white/50"></div>
                 </div>
-
                 <div class="text-xs font-bold text-gray-400 whitespace-nowrap flex flex-col items-end leading-tight">
                     <span>次のボーナスまで</span>
                     <span class="text-orange-500">あと <span id="chars-left-display">30</span> 文字</span>
                 </div>
             </div>
 
-            <!-- ボーナスポップアップ -->
             <div id="bonus-popup" class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full z-30 transition-all duration-300 opacity-0 pointer-events-none">
                 <div class="bg-yellow-400 text-yellow-900 px-6 py-2 rounded-full font-black text-xl shadow-lg border-2 border-yellow-200 whitespace-nowrap">
                     + 5 秒追加！
                 </div>
             </div>
 
-            <!-- タイピングカード -->
             <div id="typing-card" class="bg-white rounded-3xl p-10 md:p-14 shadow-xl border-2 border-white transition-all duration-200 text-center cursor-text relative overflow-hidden" onclick="focusInput()">
-                <!-- 背景装飾 -->
-                <div class="absolute top-0 right-0 p-4 opacity-5">
-                    <i data-lucide="film" class="w-32 h-32"></i>
-                </div>
-
-                <!-- 報酬バッジ -->
+                <div class="absolute top-0 right-0 p-4 opacity-5"><i data-lucide="film" class="w-32 h-32"></i></div>
                 <div class="absolute top-6 right-6">
-                    <span id="reward-badge" class="px-3 py-1 rounded-full text-sm font-bold border bg-green-50 text-green-600 border-green-200">
-                        + $100
-                    </span>
+                    <span id="reward-badge" class="px-3 py-1 rounded-full text-sm font-bold border bg-green-50 text-green-600 border-green-200">+ $100</span>
                 </div>
-
-                <!-- テキスト表示エリア -->
                 <div class="mb-8 min-h-[120px] flex items-center justify-center">
-                    <p id="typing-text-area" class="leading-snug break-words tracking-wide text-3xl md:text-5xl font-mono text-gray-400">
-                        <!-- JSで文字を生成 -->
-                    </p>
+                    <p id="typing-text-area" class="leading-snug break-words tracking-wide text-3xl md:text-5xl font-mono text-gray-400"></p>
                 </div>
-
-                <!-- 翻訳エリア -->
                 <div id="translation-area" class="transition-all duration-300 ease-in-out overflow-hidden max-h-32 opacity-100 mt-6">
                     <div class="border-t border-gray-100 pt-6">
-                        <p id="translation-text" class="text-xl text-gray-600 font-serif italic mb-2">
-                            "日本語訳"
-                        </p>
+                        <p id="translation-text" class="text-xl text-gray-600 font-serif italic mb-2">"日本語訳"</p>
                         <div class="flex flex-col md:flex-row items-center justify-center gap-2 text-sm text-gray-400 font-bold uppercase tracking-widest">
                             <span id="character-name" class="text-gray-500">キャラ名</span>
                             <span class="hidden md:inline mx-2 text-gray-300">|</span>
@@ -203,16 +246,12 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- 隠し入力フィールド -->
                 <input type="text" id="hidden-input" class="absolute opacity-0 w-full h-full top-0 left-0 cursor-default" autocomplete="off">
             </div>
 
-            <!-- 翻訳切り替えボタン -->
             <div class="flex justify-center">
                 <button onclick="toggleTranslation()" id="translation-btn" class="flex items-center gap-2 px-6 py-2 rounded-full font-medium text-sm transition-all border bg-blue-50 text-blue-600 border-blue-200">
-                    <i data-lucide="eye-off" class="w-4 h-4"></i>
-                    <span>日本語訳を隠す</span>
+                    <i data-lucide="eye-off" class="w-4 h-4"></i><span>日本語訳を隠す</span>
                 </button>
             </div>
         </div>
@@ -244,30 +283,91 @@
                 過去最高額: <span class="font-bold text-gray-700">$<span id="result-highscore">0</span></span>
             </div>
 
+            <!-- シェアボタン -->
+            <button onclick="shareOnX()" class="w-full mb-4 py-3 bg-black hover:bg-gray-800 text-white font-bold rounded-xl text-lg transition-all flex items-center justify-center gap-2">
+                <!-- X Logo (簡易) -->
+                <svg viewBox="0 0 24 24" class="w-5 h-5 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                結果をXでシェアする
+            </button>
+
             <div class="flex flex-col gap-3">
-                <button onclick="startGame()" class="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl text-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 shadow-lg">
+                <button onclick="startPreGame()" class="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl text-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 shadow-lg">
                     <i data-lucide="rotate-ccw" class="w-5 h-5"></i> もう一度プレイ
                 </button>
-                
                 <button onclick="goHome()" class="w-full py-3 bg-white hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-lg transition-all border border-gray-200 flex items-center justify-center gap-2">
                     <i data-lucide="home" class="w-5 h-5"></i> ホームに戻る
                 </button>
             </div>
         </div>
-
     </main>
 
     <footer class="p-6 text-center text-gray-400 text-xs border-t border-gray-100 mt-auto">
-        <p>&copy; 2024 Cinema Typing. All movie quotes belong to their respective copyright holders.</p>
+        <p>&copy; 2024 Cinema Typing.</p>
     </footer>
+
+    <!-- 4. カウントダウン画面 (配置場所変更: body直下・固定配置) -->
+    <div id="screen-countdown" class="screen flex items-center justify-center">
+        <div class="film-grain"></div>
+        <div class="film-scratch"></div>
+        <div class="film-scratch"></div>
+        <div class="film-scratch"></div>
+        <div class="vignette"></div>
+        
+        <div class="countdown-circle">
+            <div class="crosshair-h"></div>
+            <div class="crosshair-v"></div>
+            <div class="radar-sweep"></div>
+            <span id="countdown-number" class="countdown-number relative z-10">5</span>
+        </div>
+    </div>
 
     <!-- ゲームロジック -->
     <script>
-        // --- データ定義 ---
+        // --- 簡易サウンドマネージャー（Web Audio API） ---
+        const Sound = {
+            ctx: null,
+            isMuted: false,
+            init: function() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playTone: function(freq, type, duration, vol = 0.1) {
+                if (this.isMuted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            },
+            type: function() { this.playTone(800, 'sine', 0.1, 0.1); },
+            error: function() { this.playTone(150, 'sawtooth', 0.3, 0.2); },
+            bonus: function() { 
+                setTimeout(() => this.playTone(1000, 'square', 0.1, 0.1), 0);
+                setTimeout(() => this.playTone(1500, 'square', 0.1, 0.1), 100);
+                setTimeout(() => this.playTone(2000, 'square', 0.2, 0.1), 200);
+            },
+            count: function() { this.playTone(1000, 'sine', 0.1, 0.2); },
+            countStart: function() { this.playTone(2000, 'square', 0.3, 0.2); },
+            finish: function() {
+                this.playTone(400, 'triangle', 0.5, 0.2);
+                setTimeout(() => this.playTone(600, 'triangle', 0.5, 0.2), 200);
+                setTimeout(() => this.playTone(800, 'triangle', 1.0, 0.2), 400);
+            }
+        };
+
+        // --- データ定義 (Quotes) ---
         const QUOTES_DATA = [
-            // Level 1
             { text: "I'll be back.", translation: "また戻ってくる。", source: "The Terminator", character: "T-800", level: 1 },
-            { text: "May the Force be with you.", translation: "フォースと共にあらんことを。", source: "Star Wars", character: "Han Solo / General Dodonna", level: 1 },
+            { text: "May the Force be with you.", translation: "フォースと共にあらんことを。", source: "Star Wars", character: "Han Solo", level: 1 },
             { text: "It's showtime!", translation: "ショータイムだ！", source: "Beetlejuice", character: "Beetlejuice", level: 1 },
             { text: "I see dead people.", translation: "死んだ人が見えるんだ。", source: "The Sixth Sense", character: "Cole Sear", level: 1 },
             { text: "Here's Johnny!", translation: "お客様だよ！", source: "The Shining", character: "Jack Torrance", level: 1 },
@@ -289,7 +389,6 @@
             { text: "I love you 3000.", translation: "3000回愛してる。", source: "Avengers: Endgame", character: "Tony Stark", level: 1 },
             { text: "Whatever it takes.", translation: "何としてでも。", source: "Avengers: Endgame", character: "Captain America", level: 1 },
             { text: "Dance-off, bro!", translation: "ダンス・バトルだ！", source: "Guardians of the Galaxy", character: "Star-Lord", level: 1 },
-            // Level 2
             { text: "I'm gonna make him an offer he can't refuse.", translation: "文句は言わせん（断れない提案をしてやる）。", source: "The Godfather", character: "Vito Corleone", level: 2 },
             { text: "Toto, I've a feeling we're not in Kansas anymore.", translation: "トト、ここはもうカンザスじゃないみたい。", source: "The Wizard of Oz", character: "Dorothy Gale", level: 2 },
             { text: "Here's looking at you, kid.", translation: "君の瞳に乾杯。", source: "Casablanca", character: "Rick Blaine", level: 2 },
@@ -313,7 +412,6 @@
             { text: "He's a friend from work!", translation: "仕事の友達なんだ！", source: "Thor: Ragnarok", character: "Thor", level: 2 },
             { text: "Genius, billionaire, playboy, philanthropist.", translation: "天才、金持ち、遊び人、慈善家。", source: "The Avengers", character: "Tony Stark", level: 2 },
             { text: "Nothing goes over my head. I would catch it.", translation: "何も頭上を通過したりしない。私が捕まえる。", source: "Guardians of the Galaxy", character: "Drax", level: 2 },
-            // Level 3
             { text: "Life is like a box of chocolates. You never know what you're gonna get.", translation: "人生はチョコレートの箱みたいなもの。開けてみるまで中身はわからない。", source: "Forrest Gump", character: "Forrest Gump", level: 3 },
             { text: "The first rule of Fight Club is: You do not talk about Fight Club.", translation: "ファイト・クラブのルールその1、ファイト・クラブのことを口外するな。", source: "Fight Club", character: "Tyler Durden", level: 3 },
             { text: "You can't handle the truth!", translation: "お前たちに真実は扱えない！", source: "A Few Good Men", character: "Col. Jessup", level: 3 },
@@ -330,15 +428,14 @@
             { text: "I told you. I don't want to join your super-secret boy band.", translation: "言ったろ。君の超極秘アイドルグループに参加する気はないって。", source: "The Avengers", character: "Tony Stark", level: 3 },
         ];
 
-        // --- 定数 ---
-        const BASE_TIME = 60; // 基本時間
+        // --- 変数と定数 ---
+        const BASE_TIME = 60;
         const BONUS_TIME_THRESHOLD = 30;
         const BONUS_TIME_AMOUNT = 5;
 
-        // --- 状態変数 ---
-        let gameState = 'menu'; // menu, playing, finished
+        let gameState = 'menu';
         let currentQuote = null;
-        let availableQuotes = []; // 出題用プール
+        let availableQuotes = [];
         let userInput = '';
         let timeLeft = BASE_TIME;
         let score = 0;
@@ -350,13 +447,10 @@
         let showTranslation = true;
         let selectedLevel = 'all';
 
-        // --- DOM要素 ---
+        // --- DOM ---
         const dom = {
-            screens: {
-                menu: document.getElementById('screen-menu'),
-                playing: document.getElementById('screen-playing'),
-                finished: document.getElementById('screen-finished')
-            },
+            screens: { menu: document.getElementById('screen-menu'), countdown: document.getElementById('screen-countdown'), playing: document.getElementById('screen-playing'), finished: document.getElementById('screen-finished') },
+            countdownNumber: document.getElementById('countdown-number'),
             timeDisplay: document.getElementById('time-display'),
             timerContainer: document.getElementById('timer-container'),
             clockIcon: document.getElementById('clock-icon'),
@@ -381,7 +475,8 @@
             sourceName: document.getElementById('source-name'),
             translationBtn: document.getElementById('translation-btn'),
             rewardBadge: document.getElementById('reward-badge'),
-            levelSelector: document.getElementById('level-selector')
+            levelSelector: document.getElementById('level-selector'),
+            muteBtn: document.getElementById('mute-btn')
         };
 
         // --- 初期化 ---
@@ -389,11 +484,11 @@
             loadHighscore();
             renderLevelSelector();
             lucide.createIcons();
-            
             dom.hiddenInput.addEventListener('input', handleInput);
-            document.addEventListener('click', () => {
-                if (gameState === 'playing') focusInput();
-            });
+            document.addEventListener('click', () => { if (gameState === 'playing') focusInput(); });
+            
+            // 音声コンテキストの初期化
+            document.body.addEventListener('click', () => { Sound.init(); }, { once: true });
         };
 
         function loadHighscore() {
@@ -404,6 +499,15 @@
             }
         }
 
+        // --- 音量切り替え ---
+        function toggleMute() {
+            Sound.isMuted = !Sound.isMuted;
+            const icon = Sound.isMuted ? 'volume-x' : 'volume-2';
+            dom.muteBtn.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i>`;
+            lucide.createIcons();
+        }
+
+        // --- 難易度 ---
         function renderLevelSelector() {
             const levels = [
                 { id: 'all', label: 'すべて', desc: 'MIXED', color: 'bg-gray-100 text-gray-700 border-gray-200' },
@@ -411,7 +515,6 @@
                 { id: 2, label: '中文', desc: '$300 (+10s)', color: 'bg-blue-50 text-blue-700 border-blue-200' },
                 { id: 3, label: '長文', desc: '$1,000 (+20s)', color: 'bg-purple-50 text-purple-700 border-purple-200' },
             ];
-
             dom.levelSelector.innerHTML = levels.map(l => `
                 <button onclick="selectLevel('${l.id}')" 
                     class="relative p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center justify-center gap-1
@@ -431,43 +534,70 @@
             renderLevelSelector();
         }
 
-        // --- ゲーム制御 ---
+        // --- ゲーム進行 ---
         function switchScreen(screenName) {
             Object.values(dom.screens).forEach(el => el.classList.remove('active'));
             dom.screens[screenName].classList.add('active');
+            
+            // スクロールリセット (重要)
+            window.scrollTo(0, 0);
+
             setTimeout(() => lucide.createIcons(), 50);
         }
 
+        // STEP 1: ボタンを押すとカウントダウン開始
+        function startPreGame() {
+            Sound.init();
+            gameState = 'countdown';
+            switchScreen('countdown');
+            
+            // カウントダウン画面は fixed なのでスクロール不要だが念のため
+            window.scrollTo(0, 0);
+            
+            startCountdown();
+        }
+
+        // STEP 2: カウントダウン処理
+        function startCountdown() {
+            let count = 5;
+            dom.countdownNumber.textContent = count;
+            Sound.count();
+
+            const interval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    dom.countdownNumber.textContent = count;
+                    Sound.count();
+                } else {
+                    clearInterval(interval);
+                    Sound.countStart();
+                    startGame();
+                }
+            }, 1000);
+        }
+
+        // STEP 3: 実際のゲーム開始
         function startGame() {
             gameState = 'playing';
-            score = 0;
-            streak = 0;
-            streakProgress = 0;
-            maxStreak = 0;
+            score = 0; streak = 0; streakProgress = 0; maxStreak = 0;
             
-            // 時間設定（レベルボーナス）
             let initialTime = BASE_TIME;
             if (selectedLevel === 2) initialTime += 10;
             if (selectedLevel === 3) initialTime += 20;
             timeLeft = initialTime;
             
             userInput = '';
-
-            // 出題プール作成（重複防止用）
+            
             let candidates = QUOTES_DATA;
-            if (selectedLevel !== 'all') {
-                candidates = QUOTES_DATA.filter(q => q.level === selectedLevel);
-            }
-            // 配列をコピーしてシャッフル
+            if (selectedLevel !== 'all') { candidates = QUOTES_DATA.filter(q => q.level === selectedLevel); }
             availableQuotes = [...candidates].sort(() => Math.random() - 0.5);
             
-            // UIリセット
             document.body.classList.remove('urgent-mode');
             dom.timeDisplay.classList.remove('urgent-text');
             dom.timerContainer.classList.remove('border-red-500', 'bg-red-50');
             
             updateDisplay();
-            switchScreen('playing');
+            switchScreen('playing'); // ここで scrollTo(0,0) が呼ばれる
             nextQuote();
             startTimer();
             focusInput();
@@ -483,10 +613,7 @@
             if (timerId) clearInterval(timerId);
             timerId = setInterval(() => {
                 timeLeft--;
-                if (timeLeft <= 0) {
-                    timeLeft = 0;
-                    endGame(false); // false = タイムアップ
-                }
+                if (timeLeft <= 0) { timeLeft = 0; endGame(false); }
                 updateTimeDisplay();
             }, 1000);
         }
@@ -494,11 +621,9 @@
         function endGame(isComplete) {
             clearInterval(timerId);
             gameState = 'finished';
-            
-            // 緊急モード解除
             document.body.classList.remove('urgent-mode');
+            Sound.finish();
 
-            // タイトル・メッセージ変更
             if (isComplete) {
                 dom.finishTitle.textContent = "全問クリア！";
                 dom.finishTitle.classList.add("text-blue-600");
@@ -521,53 +646,31 @@
             dom.resultMaxStreak.textContent = maxStreak;
             dom.resultHighscore.textContent = highScore.toLocaleString();
             
-            if (isNewRecord && score > 0) {
-                dom.newRecordBadge.classList.remove('hidden');
-            } else {
-                dom.newRecordBadge.classList.add('hidden');
-            }
-
+            dom.newRecordBadge.classList.toggle('hidden', !(isNewRecord && score > 0));
             switchScreen('finished');
         }
 
         function nextQuote() {
-            if (availableQuotes.length === 0) {
-                endGame(true); // true = コンプリート
-                return;
-            }
-
-            // プールから1つ取り出す（末尾から）
+            if (availableQuotes.length === 0) { endGame(true); return; }
             currentQuote = availableQuotes.pop();
             userInput = '';
             dom.hiddenInput.value = '';
-            
             updateQuoteDisplay();
             renderText();
         }
 
-        // --- 入力処理 ---
-        function focusInput() {
-            dom.hiddenInput.focus();
-        }
+        // --- 入力 ---
+        function focusInput() { dom.hiddenInput.focus(); }
 
         function handleInput(e) {
             if (gameState !== 'playing') return;
-            
             const val = e.target.value;
             const targetText = currentQuote.text;
 
-            if (val.length > targetText.length) {
-                dom.hiddenInput.value = userInput;
-                return;
-            }
-
+            if (val.length > targetText.length) { dom.hiddenInput.value = userInput; return; }
             if (val.length < userInput.length) {
-                userInput = val;
-                streak = 0;
-                streakProgress = 0;
-                updateStreakDisplay();
-                renderText();
-                return;
+                userInput = val; streak = 0; streakProgress = 0;
+                updateStreakDisplay(); renderText(); return;
             }
 
             const lastCharIndex = val.length - 1;
@@ -577,6 +680,7 @@
                 userInput = val;
                 streak++;
                 if (streak > maxStreak) maxStreak = streak;
+                Sound.type();
                 
                 streakProgress++;
                 if (streakProgress >= BONUS_TIME_THRESHOLD) {
@@ -584,21 +688,20 @@
                     streakProgress = 0;
                     triggerBonusAnimation();
                     updateTimeDisplay();
+                    Sound.bonus();
                 }
                 
                 setFeedback('correct');
-                
                 if (userInput === targetText) {
                     addScore();
-                    setTimeout(nextQuote, 200);
+                    setTimeout(nextQuote, 100);
                 }
             } else {
                 dom.hiddenInput.value = userInput;
-                streak = 0;
-                streakProgress = 0;
+                streak = 0; streakProgress = 0;
                 setFeedback('wrong');
+                Sound.error();
             }
-            
             updateStreakDisplay();
             renderText();
         }
@@ -621,8 +724,6 @@
 
         function updateTimeDisplay() {
             dom.timeDisplay.textContent = timeLeft;
-            
-            // 残り5秒以下の演出
             if (timeLeft <= 5 && timeLeft > 0) {
                 document.body.classList.add('urgent-mode');
                 dom.timeDisplay.classList.add('urgent-text');
@@ -632,8 +733,6 @@
                 document.body.classList.remove('urgent-mode');
                 dom.timeDisplay.classList.remove('urgent-text');
                 dom.timerContainer.classList.remove('border-red-500', 'bg-red-50');
-                
-                // 10秒以下（注意）
                 if (timeLeft < 10) {
                     dom.timeDisplay.parentElement.classList.add('text-red-500');
                     dom.clockIcon.classList.add('text-red-500');
@@ -653,15 +752,13 @@
         }
 
         function updateQuoteDisplay() {
-            let colorClass = "";
-            let amount = "";
+            let colorClass = ""; let amount = "";
             if (currentQuote.level === 1) { colorClass = "bg-green-50 text-green-600 border-green-200"; amount = "$100"; }
             else if (currentQuote.level === 2) { colorClass = "bg-blue-50 text-blue-600 border-blue-200"; amount = "$300"; }
             else { colorClass = "bg-purple-50 text-purple-600 border-purple-200"; amount = "$1,000"; }
             
             dom.rewardBadge.className = `px-3 py-1 rounded-full text-sm font-bold border ${colorClass}`;
             dom.rewardBadge.textContent = `+ ${amount}`;
-
             dom.translationText.textContent = `"${currentQuote.translation}"`;
             dom.characterName.textContent = currentQuote.character;
             dom.sourceName.textContent = currentQuote.source;
@@ -672,34 +769,24 @@
             const html = chars.map((char, index) => {
                 let classes = "transition-colors duration-100 ";
                 if (index < userInput.length) {
-                    if (userInput[index] === char) {
-                        classes += "text-blue-600 font-bold";
-                    } else {
-                        classes += "text-red-500 bg-red-100";
-                    }
+                    if (userInput[index] === char) { classes += "text-blue-600 font-bold"; } 
+                    else { classes += "text-red-500 bg-red-100"; }
                 } else if (index === userInput.length) {
                     classes += "bg-blue-100 border-b-2 border-blue-500 text-gray-800 animate-pulse";
-                } else {
-                    classes += "text-gray-400";
-                }
+                } else { classes += "text-gray-400"; }
                 return `<span class="${classes}">${char}</span>`;
             }).join('');
-            
             dom.typingText.innerHTML = html;
         }
 
-        // --- UI/演出 ---
+        // --- UI ---
         function setFeedback(type) {
             dom.typingCard.classList.remove('border-white', 'border-red-400', 'border-blue-100', 'shake-animation');
-            
             if (type === 'wrong') {
                 dom.typingCard.classList.add('border-red-400', 'shake-animation');
                 setTimeout(() => dom.typingCard.classList.remove('shake-animation'), 300);
-            } else if (type === 'correct') {
-                dom.typingCard.classList.add('border-blue-100');
-            } else {
-                dom.typingCard.classList.add('border-white');
-            }
+            } else if (type === 'correct') { dom.typingCard.classList.add('border-blue-100'); } 
+            else { dom.typingCard.classList.add('border-white'); }
         }
 
         function triggerBonusAnimation() {
@@ -729,6 +816,11 @@
             lucide.createIcons();
         }
 
+        function shareOnX() {
+            const text = `Cinema Typingで$${score.toLocaleString()}を稼ぎました！\n最大コンボ: ${maxStreak}\n\n映画の名台詞でタイピング練習！`;
+            const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
+            window.open(url, '_blank');
+        }
     </script>
 </body>
 </html>
